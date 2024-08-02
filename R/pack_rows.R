@@ -9,16 +9,17 @@ pack_rows <- function(x, start, nrows, label = NULL, italic = TRUE, bold = FALSE
   if (!is.null(align) && !(is.character(align) && length(align) == 1 && align %in% c("left", "centre", "center", "right", "auto")))
     stop("'align' must be one of c('left', 'centre', 'center', 'right', 'auto'")
   if (!is.null(indent)) {
+    if (isTRUE(indent)) indent <- "1em"
     if (!((is.numeric(indent) || is.character(indent)) && length(indent) == 1)) stop("'indent' must be a numeric or character scalar")
-    if (is.numeric(indent)) indent <- paste0(indent, "fr")
+    if (is.numeric(indent)) indent <- paste0(indent, "em")
     n <- nchar(indent)
     if (!(substring(indent, n - 1, n) %in% c("pt", "mm", "cm", "in", "em"))) stop("'indent' must be a valid Typst length")
   }
 
   firstvar <- colnames(x$`_body`)[[1]]
-  new_row <- tibble::tibble({{firstvar}} := label, `_insert_after` = start$rows)
+  new_row <- tibble::tibble({{firstvar}} := label, `_insert_before` = start$rows)
   x$`_added_rows` <- tibble::add_row(x$`_added_rows`, new_row)
   x %>%
-    format_cells(cells(1, nrow(.$`_added_rows`), "added_rows"), bold = bold, italic = italic, align = align) %>%
-    add_indent(cells(1, start$rows + seq_len(nrows) - 1)) ## This is still to be defined
+    format_cells(cells(1, !!nrow(x$`_added_rows`), "added_rows"), bold = bold, italic = italic, align = align) %>%
+    add_indent(cells(1, start$rows + seq_len(nrows) - 1))
 }

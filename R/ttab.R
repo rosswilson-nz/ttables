@@ -29,11 +29,13 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
   `_header` <- tibble::as_tibble_row(setNames(colnames(`_body`), colnames))
 
   `_format` <- tibble::tibble(
-    location = list(),
+    column = integer(),
+    row = integer(),
+    location = character(),
     bold = logical(),
     italic = logical(),
     align = character(),
-    indent = character()
+    indent = ttables_length()
   )
 
   tibble::as_tibble(lapply(`_body`, \(x) rep(list(cell_format()), ncol(`_body`))))
@@ -56,7 +58,7 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     combine = character()
   )
 
-  `_added_rows` <- dplyr::mutate(`_body`[0, ], `_insert_after` = integer())
+  `_added_rows` <- dplyr::mutate(`_body`[0, ], `_insert_before` = integer())
 
   structure(list(
     `_opts` = `_opts`,

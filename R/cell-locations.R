@@ -15,11 +15,21 @@ resolve_location <- function(location, x) {
     .data <- x$`_body`
     .location <- "body"
   } else if (inherits(location, "added_row_cells")) {
-    .data <- dplyr::select(x$`_added_rows`, -`_insert_after`)
+    .data <- dplyr::select(x$`_added_rows`, -`_insert_before`)
     .location <- "added_rows"
   } else stop("Invalid location")
   cols <- tidyselect::eval_select(location$columns, data = .data)
   rows <- tidyselect::with_vars(rownames(.data), rlang::eval_tidy(location$rows, data = .data))
-  list(list(columns = cols, rows = rows, location = .location))
+  list(columns = cols, rows = rows, location = .location)
 }
 
+expand_location <- function(location) {
+  columns <- if (is.logical(location$columns)) which(location$columns) else location$columns
+  rows <- if (is.logical(location$rows)) which(location$rows) else location$rows
+  tibble::tibble(tidyr::expand_grid(column = columns, row = rows), location = location$location)
+}
+
+expand_locations <- function(locations) {
+  out <- purrr::map(locations, expand_location)
+  purrr::list_rbind(out)
+}

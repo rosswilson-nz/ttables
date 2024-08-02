@@ -1,7 +1,7 @@
 span <- function(x, start, size, combine = NA) {
   start <- resolve_location(start, x)
 
-  new_span <- tibble(start, size = list(size), combine)
+  new_span <- tibble(start = list(start), size = list(size), combine)
   x$`_layout` <- tibble::add_row(x$`_layout`, new_span)
   x
 }

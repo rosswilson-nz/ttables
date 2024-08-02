@@ -8,10 +8,10 @@ add_footnote <- function(x, content, type = "general", location) {
     location <- resolve_location(location, x)
   } else {
     if (!missing(location)) stop("'location' cannot be provided if type is 'general'")
-    location <- list(NULL)
+    location <- NULL
   }
 
-  footnote <- tibble::tibble(location = location,
+  footnote <- tibble::tibble(location = list(location),
                              type = type,
                              content = content)
 
