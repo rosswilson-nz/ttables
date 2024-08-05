@@ -12,7 +12,8 @@ ttab(
   colnames = NULL,
   align = "left",
   widths = "auto",
-  placement = "auto"
+  placement = "auto",
+  fontsize = NA_integer_
 )
 }
 \arguments{

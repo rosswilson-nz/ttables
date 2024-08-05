@@ -96,6 +96,7 @@ format.ttables_length <- function(x, ...) {
 
   out
 }
+is.na.ttables_length <- function(x) is.na(field(x, "abs")) | is.na(field(x, "rel"))
 vec_ptype_abbr.ttables_length <- function(x, ...) "len"
 vec_ptype_full.ttables_length <- function(x, ...) "length"
 vec_ptype2.ttables_length.ttables_length <- function(x, y, ...) new_length()

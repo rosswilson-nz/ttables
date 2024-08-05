@@ -24,8 +24,8 @@ resolve_location <- function(location, x) {
 }
 
 expand_location <- function(location) {
-  columns <- if (is.logical(location$columns)) which(location$columns) else location$columns
-  rows <- if (is.logical(location$rows)) which(location$rows) else location$rows
+  columns <- if (is.logical(location$columns)) which(location$columns) else as.integer(location$columns)
+  rows <- if (is.logical(location$rows)) which(location$rows) else as.integer(location$rows)
   tibble::tibble(tidyr::expand_grid(column = columns, row = rows), location = location$location)
 }
 

@@ -20,7 +20,7 @@
 #'     (as does the corresponding numbering in table cells).
 #'
 #' @export
-ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "left", widths = "auto", placement = "auto") {
+ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "left", widths = "auto", placement = "auto", fontsize = NA_integer_) {
   if (!is.data.frame(x)) stop("'x' must be a data frame")
 
   `_body` <- tibble::as_tibble(x, rownames = rownames)
@@ -29,18 +29,18 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
   `_header` <- tibble::as_tibble_row(setNames(colnames(`_body`), colnames))
 
   `_format` <- tibble::tibble(
-    column = integer(),
-    row = integer(),
-    location = character(),
-    bold = logical(),
-    italic = logical(),
-    align = character(),
-    indent = ttables_length()
+    column = NA_integer_,
+    row = NA_integer_,
+    location = "table",
+    bold = FALSE,
+    italic = FALSE,
+    align = align,
+    indent = ttables_length(abs_length(0), 0),
+    size = fontsize
   )
 
   tibble::as_tibble(lapply(`_body`, \(x) rep(list(cell_format()), ncol(`_body`))))
-  `_opts` <- new_table_options(align = align,
-                               widths = widths,
+  `_opts` <- new_table_options(widths = widths,
                                placement = placement,
                                caption = caption,
                                label = label,
@@ -53,7 +53,9 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
   )
 
   `_layout` <- tibble::tibble(
-    start = list(),
+    column = integer(),
+    row = integer(),
+    location = character(),
     size = list(),
     combine = character()
   )

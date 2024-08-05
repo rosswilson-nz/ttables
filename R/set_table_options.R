@@ -1,21 +1,21 @@
-new_table_options <- function(align, widths, placement, caption, label, nc) {
+new_table_options <- function(widths, placement, caption, label, nc) {
   structure(
-    list(columns.align = check_columns.align(align, nc),
-         columns.widths = check_columns.widths(widths, nc),
+    list(columns.widths = check_columns.widths(widths, nc),
          table.placement = check_table.placement(placement),
          table.caption = check_table.caption(caption),
          table.label = check_table.label(label),
          table.footnotes.order = check_table.footnotes.order(c("general", "number", "alphabet", "symbol")),
          table.footnotes.number = check_table.footnotes.number("arabic"),
          table.footnotes.alphabet = check_table.footnotes.alphabet("lower"),
-         table.footnotes.symbol = check_table.footnotes.symbol("extended")),
+         table.footnotes.symbol = check_table.footnotes.symbol("extended"),
+         table.footnotes.direction = check_table.footnotes.direction("horizontal")),
     class = "table_opts"
   )
 }
 
-set_table_options <- function(x, columns.align, columns.widths, table.placement, table.caption,
+set_table_options <- function(x, columns.widths, table.placement, table.caption,
                               table.label, table.footnotes.order, table.footnotes.number,
-                              table.footnotes.alphabet, table.footnotes.symbol) {
+                              table.footnotes.alphabet, table.footnotes.symbol, table.footnotes.direction) {
   stopifnot(inherits(x, "typst_table"))
 
   opts <- x$`_opts`
@@ -29,6 +29,7 @@ set_table_options <- function(x, columns.align, columns.widths, table.placement,
   if (!missing(table.footnotes.number)) opts$table.footnotes.number <- check_table.footnotes.number(table.footnotes.number)
   if (!missing(table.footnotes.alphabet)) opts$table.footnotes.alphabet <- check_table.footnotes.alphabet(table.footnotes.alphabet)
   if (!missing(table.footnotes.symbol)) opts$table.footnotes.symbol <- check_table.footnotes.symbol(table.footnotes.symbol)
+  if (!missing(table.footnotes.direction)) opts$table.footnotes.direction <- check_table.footnotes.direction(table.footnotes.direction)
 
   x$`_opts` <- opts
   x
@@ -106,4 +107,12 @@ check_table.footnotes.symbol <- function(x) {
   if (!is.character(x)) stop("'table.footnotes.symbol' must be a character vector")
   structure(x, class = "table_footnotes_symbol")
 }
+
+check_table.footnotes.direction <- function(x) {
+  if (!is.character(x) || length(x) != 1) stop("'table.footnotes.direction' must be a character scalar")
+  if (!is_valid_footnotes_direction(x)) stop("'table.footnotes.direction' must be one of c('horizontal', 'vertical')")
+  structure(x, class = "table_footnotes_direction")
+}
+
+is_valid_footnotes_direction <- function(x) x %in% c("horizontal", "vertical")
 

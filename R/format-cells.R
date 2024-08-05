@@ -1,4 +1,4 @@
-format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL) {
+format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL, size = NULL) {
   if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
   location <- expand_location(resolve_location(location, x))
 
@@ -13,8 +13,15 @@ format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, 
     if (!(substring(indent, n - 1, n) %in% c("pt", "mm", "cm", "in", "em"))) stop("'indent' must be a valid Typst length")
     indent <- resolve_indent(indent)
   }
+  if (!is.null(size)) {
+    if(!(is.numeric(size) && length(size) == 1 && is_wholenumber(size))) stop("'size' must be an integer scalar")
+    size <- as.integer(size)
+  }
 
-  format <- tibble::tibble(location, bold = bold %||% NA, italic = italic %||% NA, align = align %||% NA_character_, indent = indent %||% ttables_length(abs_length(NA), NA))
+  format <- tibble::tibble(location, bold = bold %||% NA, italic = italic %||% NA,
+                           align = align %||% NA_character_,
+                           indent = indent %||% ttables_length(abs_length(NA), NA),
+                           size = size %||% NA_integer_)
   x$`_format` <- merge_formats(x$`_format`, format)
   x
 }
