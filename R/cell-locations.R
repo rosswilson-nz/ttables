@@ -17,6 +17,8 @@ resolve_location <- function(location, x) {
   } else if (inherits(location, "added_row_cells")) {
     .data <- dplyr::select(x$`_added_rows`, -`_insert_before`)
     .location <- "added_rows"
+  } else if (identical(location, "table")) {
+    return(list(columns = NA_integer_, rows = NA_integer_, location = "table"))
   } else stop("Invalid location")
   cols <- tidyselect::eval_select(location$columns, data = .data)
   rows <- tidyselect::with_vars(rownames(.data), rlang::eval_tidy(location$rows, data = .data))
@@ -27,9 +29,4 @@ expand_location <- function(location) {
   columns <- if (is.logical(location$columns)) which(location$columns) else as.integer(location$columns)
   rows <- if (is.logical(location$rows)) which(location$rows) else as.integer(location$rows)
   tibble::tibble(tidyr::expand_grid(column = columns, row = rows), location = location$location)
-}
-
-expand_locations <- function(locations) {
-  out <- purrr::map(locations, expand_location)
-  purrr::list_rbind(out)
 }
