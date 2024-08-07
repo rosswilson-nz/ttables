@@ -10,10 +10,10 @@ ttab(
   label = NULL,
   rownames = NULL,
   colnames = NULL,
-  align = "left",
+  align = "auto",
   widths = "auto",
   placement = "auto",
-  fontsize = NA_integer_
+  fontsize = NA_real_
 )
 }
 \arguments{

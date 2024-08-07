@@ -20,7 +20,7 @@
 #'     (as does the corresponding numbering in table cells).
 #'
 #' @export
-ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "left", widths = "auto", placement = "auto", fontsize = NA_real_) {
+ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "auto", widths = "auto", placement = "auto", fontsize = NA_real_) {
   if (!is.data.frame(x)) stop("'x' must be a data frame")
 
   `_body` <- tibble::as_tibble(x, rownames = rownames)
@@ -40,12 +40,12 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
   )
 
   tibble::as_tibble(lapply(`_body`, \(x) rep(list(cell_format()), ncol(`_body`))))
-  `_opts` <- new_table_options(widths = widths,
-                               align = align,
-                               placement = placement,
-                               caption = caption,
-                               label = label,
-                               nc = ncol(`_body`))
+  `_opts` <- collate_initial_table_opts(widths = widths,
+                            align = align,
+                            placement = placement,
+                            caption = caption,
+                            label = label,
+                            nc = ncol(`_body`))
 
   `_footnotes` <- tibble::tibble(
     location = list(),

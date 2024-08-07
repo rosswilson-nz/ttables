@@ -1,9 +1,7 @@
 landscape <- function(x) {
   if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
 
-  out <- x
-  attr(out, "landscape") <- TRUE
-  out
+  set_table_options(x, page.landscape = TRUE)
 }
 
 supplement <- function(x) {
