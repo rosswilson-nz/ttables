@@ -13,9 +13,6 @@ magrittr::`%>%`
 #' @importFrom rlang :=
 rlang::`:=`
 
-#' @importFrom rlang .data
-NULL
-
 #' @export
 #' @importFrom tidyselect all_of
 tidyselect::all_of

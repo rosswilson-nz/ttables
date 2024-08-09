@@ -46,13 +46,17 @@ format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, 
 
 merge_formats <- function(old, new) {
   out <- dplyr::full_join(old, new, by = c("column", "row", "location"))
-  dplyr::mutate(out,
-                bold = dplyr::coalesce(.data$bold.y, .data$bold.x),
-                italic = dplyr::coalesce(.data$italic.y, .data$italic.x),
-                align = dplyr::coalesce(.data$align.y, .data$align.x),
-                indent = dplyr::coalesce(.data$indent.x, .data$indent.y),
-                size = dplyr::coalesce(.data$size.x, .data$size.y),
-                .keep = "unused")
+  out$bold <- dplyr::coalesce(out$bold.y, out$bold.x)
+  out$bold.x <- out$bold.y <- NULL
+  out$italic <- dplyr::coalesce(out$italic.y, out$italic.x)
+  out$italic.x <- out$italic.y <- NULL
+  out$align <- dplyr::coalesce(out$align.y, out$align.x)
+  out$align.x <- out$align.y <- NULL
+  out$indent <- dplyr::coalesce(out$indent.y, out$indent.x)
+  out$indent.x <- out$indent.y <- NULL
+  out$size <- dplyr::coalesce(out$size.y, out$size.x)
+  out$size.x <- out$size.y <- NULL
+  out
 }
 
 #' Add indentation to Typst table cells

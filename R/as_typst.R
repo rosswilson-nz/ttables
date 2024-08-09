@@ -44,16 +44,16 @@ print_typst_content <- function(mat, opts, fns) {
 }
 
 print_footnotes <- function(df, opts) {
-  df <- dplyr::arrange(df, factor(.data$type, levels = opts$footnotes.order), .data$ref)
-  fn_ref <- glue::glue(
-    "#super[{ref}] ",
-    ref = dplyr::case_match(df$type,
-                            "number" ~ get_fn_num(df$ref, opts$footnotes.number),
-                            "alphabet" ~ get_fn_alph(df$ref, opts$footnotes.alphabet),
-                            "symbol" ~ get_fn_sym(df$ref, opts$footnotes.symbol)),
-    .na = NULL
-  )
-  glue::glue("{fn_ref}{content}", content = df$content, .na = "")
+  df <- df[order(factor(df$type, opts$footnotes.order), df$ref), ]
+  ref <- dplyr::case_match(df$type,
+                          "number" ~ get_fn_num(df$ref, opts$footnotes.number),
+                          "alphabet" ~ get_fn_alph(df$ref, opts$footnotes.alphabet),
+                          "symbol" ~ get_fn_sym(df$ref, opts$footnotes.symbol))
+
+  glue::glue("{fn_ref}{content}",
+             content = df$content,
+             fn_ref = glue::glue("#super[{ref}] ", .na = NULL),
+             .na = "")
 }
 
 format_spans <- function(mat, opts) {
