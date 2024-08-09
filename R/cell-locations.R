@@ -1,3 +1,16 @@
+#' Specify cells in a Typst table
+#'
+#' @param columns Columns to select. Can use **`tidyverse`** selection helpers.
+#' @param rows Rows to select. Can refer to table columns by name for
+#'     conditional selection.
+#' @param location Which part of the table to look in for the specified cells.
+#'     Should be one of `"header"` (table header cells), `"body"` (main table
+#'     body cells), `"added_rows"` (any new rows added to the table via e.g.
+#'     [pack_rows()]).
+#'
+#' @returns An object inheriting from class `cells_location` specifying the
+#'     table cells.
+#' @export
 cells <- function(columns = everything(), rows = everything(), location = "body") {
   columns_expr <- rlang::enquo(columns)
   rows_expr <- rlang::enquo(rows)
@@ -15,7 +28,8 @@ resolve_location <- function(location, x) {
     .data <- x$`_body`
     .location <- "body"
   } else if (inherits(location, "added_row_cells")) {
-    .data <- dplyr::select(x$`_added_rows`, -`_insert_before`)
+    i <- which(colnames(x$`_added_rows`) == "_insert_before")
+    .data <- x$`_added_rows`[, -i]
     .location <- "added_rows"
   } else if (identical(location, "table")) {
     return(list(columns = NA_integer_, rows = NA_integer_, location = "table"))

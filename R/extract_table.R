@@ -7,14 +7,15 @@ extract_table <- function(x) {
   formats <- x$`_format`
   layout <- x$`_layout`
   footnotes <- x$`_footnotes`
+  opts <- x$`_opts`
 
   header <- extract_contents(x$`_header`, formats, layout, footnotes, "header")
   body <- extract_contents(x$`_body`, formats, layout, footnotes, "body")
   added_rows <- extract_contents(x$`_added_rows`, formats, layout, footnotes, "added_rows")
 
   body <- combine_table_sections(body, added_rows)
-  footnotes <- extract_footnotes(footnotes, header, body, direction = x$`_opts`$table.footnotes.direction)
-  list(header = header, body = body, footnotes = footnotes, opts = x$`_opts`)
+  footnotes <- extract_footnotes(footnotes, header, body, direction = opts$footnotes.direction)
+  list(header = header, body = body, footnotes = footnotes, opts = opts)
 }
 
 extract_contents <- function(df, formats, layout, footnotes, location) {
@@ -44,18 +45,37 @@ extract_contents <- function(df, formats, layout, footnotes, location) {
   l <-layout[layout$location == location, ]
   for (r in seq_len(nrow(l))) {
     ll <- l[r, ]
-    attr(out[[l$row, l$column]], "rowspan") <- l$size[[1]][[1]]
-    attr(out[[l$row, l$column]], "colspan") <- l$size[[1]][[2]]
-    attr(out[[l$row, l$column]], "combine") <- ll$combine
+    attr(out[[ll$row, ll$column]], "rowspan") <- ll$size[[1]][[1]]
+    attr(out[[ll$row, ll$column]], "colspan") <- ll$size[[1]][[2]]
+    attr(out[[ll$row, ll$column]], "combine") <- ll$combine
   }
-  for (r in seq_len(nrow(footnotes))) {
-    fn <- footnotes[r, ]
+  fn_number <- footnotes[footnotes$type == "number", ]
+  for (r in seq_len(nrow(fn_number))) {
+    fn <- fn_number[r, ]
     if (fn$location[[1]][["location"]] == location) {
       loc <- expand_location(fn$location[[1]])
       for (l in seq_len(nrow(loc))) {
-        if (fn$type == "number") attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_num") <- c(attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_num"), r)
-        if (fn$type == "alphabet") attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_alph") <- c(attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_alph"), r)
-        if (fn$type == "symbol") attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_sym") <- c(attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_sym"), r)
+        attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_num") <- c(attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_num"), r)
+      }
+    }
+  }
+  fn_alphabet <- footnotes[footnotes$type == "alphabet", ]
+  for (r in seq_len(nrow(fn_alphabet))) {
+    fn <- fn_alphabet[r, ]
+    if (fn$location[[1]][["location"]] == location) {
+      loc <- expand_location(fn$location[[1]])
+      for (l in seq_len(nrow(loc))) {
+        attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_alph") <- c(attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_alph"), r)
+      }
+    }
+  }
+  fn_symbol <- footnotes[footnotes$type == "symbol", ]
+  for (r in seq_len(nrow(fn_symbol))) {
+    fn <- fn_symbol[r, ]
+    if (fn$location[[1]][["location"]] == location) {
+      loc <- expand_location(fn$location[[1]])
+      for (l in seq_len(nrow(loc))) {
+        attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_sym") <- c(attr(out[[loc$row[[l]], loc$column[[l]]]], "footnote_sym"), r)
       }
     }
   }
@@ -70,7 +90,7 @@ combine_table_sections <- function(body, added_rows) {
   at <- sort(at, decreasing = TRUE)
   idxs <- seq_len(nrow(body))
   for (a in seq_along(at)) {
-    idxs <- append(idxs, nrow(body) + a, after = at[a])
+    idxs <- append(idxs, nrow(body) + a, after = at[a] - 1)
   }
 
   rbind(body, added_rows)[idxs, ]

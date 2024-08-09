@@ -33,22 +33,21 @@ new_table_opts <- function(widths = auto(), align, placement, caption, label, fo
   )
 }
 
+#' @export
 print.ttables_table_opts <- function(x, ...) {
-  str(x)
+  x
 }
 
 check_widths <- function(x, ncols) {
   if (rlang::is_scalar_character(x)) {
     switch(x,
-           auto = auto(),
-           span = check_widths(rep("1fr", ncols), ncols),
-           if (ncols == 1) as_length(x) else check_widths(rep(x, ncols), ncols))
-  } else if (rlang::is_scalar_integer(x) | rlang::is_scalar_double(x)) {
-    if (ncols == 1) as_length(paste0(x, "fr")) else check_widths(rep(x, ncols), ncols)
+           auto = as_width(rep("auto", ncols)),
+           span = as_width(rep("1fr", ncols)),
+           if (ncols == 1) as_width(x) else check_widths(rep(x, ncols), ncols))
   } else {
     stopifnot(length(x) == ncols)
     if (is.numeric(x)) x <- paste0(x, "fr")
-    as_length(x)
+    as_width(x)
   }
 }
 
@@ -59,7 +58,7 @@ check_align <- function(x, ncols) {
            if (ncols == 1) vec_cast(x, alignment()) else check_align(rep(x, ncols), ncols))
   } else {
     stopifnot(length(x) == ncols)
-    vec_cast(x, alignment())
+    as_alignment(x)
   }
 }
 
@@ -127,11 +126,17 @@ check_na <- function(x) {
 }
 
 auto <- function() structure("auto", class = "auto")
+#' @export
 format.auto <- function(x, ...) "auto"
+#' @export
 print.auto <- function(x, ...) cat("auto")
+is_auto <- function(x) inherits(x, "auto")
 none <- function() structure("none", class = "none")
+#' @export
 format.none <- function(x, ...) "none"
+#' @export
 print.none <- function(x, ...) cat("none")
+is_none <- function(x) inherits(x, "none")
 
 collate_initial_table_opts <- function(widths, align, placement, caption, label, ncols) {
   widths <- check_widths(widths, ncols)
@@ -147,7 +152,44 @@ collate_initial_table_opts <- function(widths, align, placement, caption, label,
                  label = label)
 }
 
-set_table_options <- function(x, widths, align, placement, caption,
+#' Set Typst table options
+#'
+#' @param x A Typst table
+#' @param align Column alignment. Either `"auto"` or a vector with the
+#'     same length as the number of columns in `x`. Possible values are
+#'     `"left"`,  `"center"` (or `"centre"`), `"right"`. A single non-`"auto"`
+#'     value will be recycled to the number of columns of `x`.
+#' @param widths Columns widths. Either `"auto"` for automatically determined
+#'     column widths, `"span"` for equal widths spanning the full page, or a
+#'     vector of Typst track sizes. A numeric vector will be taken as fractional
+#'     lengths.
+#' @param placement Table placement. Either `"none"`, `"auto"`, `"top"`,
+#'     `"bottom"`. The default is `"auto"`.
+#' @param caption The table caption.
+#' @param label Table label, used for cross-referencing
+#' @param footnotes.order The order of different footnote types below the table.
+#'     A permumation of `c('general', 'number', 'alphabet', 'symbol')`.
+#' @param footnotes.number The style used for numeric footnote labels. One of
+#'     `c("arabic", "roman", "Roman")`. Default is `"arabic"`.
+#' @param footnotes.alphabet The style used for alphabetic footnote labels. One
+#'     of `c("lower", "upper")`. Default is `"lower"`.
+#' @param footnotes.symbol The style used for symbolic footnote labels. One of
+#'     `c("standard", "extended")` or a character vector of symbols. The
+#'     `"standard"` set is `*`, `†`, `‡`, and `§`; `"extended"` adds
+#'     `‖` and `¶`. Default is `"extended"`.
+#' @param footnotes.direction The table direction in which footnote numbering is
+#'     accumulated. Either `"horizontal"` or `"vertical"`. Default is
+#'     `"horizontal"`.
+#' @param supplement Whether the table is to be placed in supplementary material
+#'     in the output. This only changes the Typst 'kind' parameter to
+#'     `"suppl-table"` instead of `"table"`. Typst templates may make use of
+#'     this to format the table differently. Default is `FALSE.`
+#' @param landscape Whether the table should be placed on its own landscape
+#'     page. Default is `FALSE`.
+#' @param na Character string to print for `NA` values. Default is `"---"`.
+#'
+#' @returns A Typst table with the specified options set.
+set_table_options <- function(x, align, widths, placement, caption,
                               label, footnotes.order, footnotes.number,
                               footnotes.alphabet, footnotes.symbol, footnotes.direction,
                               supplement, landscape, na) {

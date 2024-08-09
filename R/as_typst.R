@@ -1,10 +1,18 @@
+#' Print a `typst_table` object as raw Typst
+#'
+#' @param x A Typst table
+#' @returns A `glue` string containing the raw Typst output.
+#'
+#' @export
 as_typst <- function(x) {
-  widths <- print_widths(x$opts$columns.widths, ncol(x$header))
-  align <- print_align(x$opts$columns.align, ncol(x$header))
-  kind <- if (isTRUE(attr(x, "supplement"))) "\"suppl-table\"" else "table"
+  x <- extract_table(x)
 
-  header <- print_typst_content(x$header, x$opts)
-  body <- print_typst_content(x$body, x$opts)
+  widths <- print_widths(x$opts$widths, ncol(x$header))
+  align <- print_align(x$opts$align, ncol(x$header))
+  kind <- if (x$opts$supplement) "\"suppl-table\"" else "table"
+
+  header <- print_typst_content(x$header, x$opts, x$footnotes)
+  body <- print_typst_content(x$body, x$opts, x$footnotes)
   footnotes <- print_footnotes(x$footnotes, x$opts)
 
   header <- format_spans(header, x$opts)
@@ -31,17 +39,18 @@ print_align <- function(align, nc) {
   wrap_paren(align)
 }
 
-print_typst_content <- function(mat, opts) {
-  apply(mat, 1:2, \(x) format_contents(x[[1]], opts))
+print_typst_content <- function(mat, opts, fns) {
+  apply(mat, 1:2, \(x) format_contents(x[[1]], opts, fns))
 }
 
 print_footnotes <- function(df, opts) {
-  fn_ref <- glue::glue_data(
-    df, "#super[{ref}] ",
-    ref = dplyr::case_match(type,
-                            "number" ~ get_fn_num(ref, opts$table.footnotes.number),
-                            "alphabet" ~ get_fn_alph(ref, opts$table.footnotes.alphabet),
-                            "symbol" ~ get_fn_sym(ref, opts$table.footnotes.symbol)),
+  df <- dplyr::arrange(df, factor(.data$type, levels = opts$footnotes.order), .data$ref)
+  fn_ref <- glue::glue(
+    "#super[{ref}] ",
+    ref = dplyr::case_match(df$type,
+                            "number" ~ get_fn_num(df$ref, opts$footnotes.number),
+                            "alphabet" ~ get_fn_alph(df$ref, opts$footnotes.alphabet),
+                            "symbol" ~ get_fn_sym(df$ref, opts$footnotes.symbol)),
     .na = NULL
   )
   glue::glue("{fn_ref}{content}", content = df$content, .na = "")
@@ -83,9 +92,9 @@ wrap_paren <- function(x, open = "(", close = ")", collapse = ",") {
   paste0(open, paste(x, collapse = collapse), close)
 }
 
-format_contents <- function(x, opts) {
-  out <- glue::glue(x[[1]], .na = opts$cells.na)
-  out <- add_footnote_refs(out, x, opts)
+format_contents <- function(x, opts, fns) {
+  out <- glue::glue(x[[1]], .na = opts$na)
+  out <- add_footnote_refs(out, x, fns, opts)
   out <- add_indents(out, x, opts)
   out <- add_textstyle(out, x, opts)
   out <- restore_attributes(out, x)
@@ -94,11 +103,11 @@ format_contents <- function(x, opts) {
 }
 
 print_cells <- function(mat) {
-  apply(mat, 1:2, print_cell)
+  apply(mat, 1:2, \(x) print_cell(x[[1]]))
 }
 
 print_cell <- function(x) {
-  if (is.null(x)) return(glue::glue())
+  if (is.null(x[[1]])) return(glue::glue())
   colspan <- if (!is.null(attr(x, "colspan"))) glue::glue("colspan: {colspan}",
                                                           colspan = attr(x, "colspan"))
   rowspan <- if (!is.null(attr(x, "rowspan"))) glue::glue("rowspan: {rowspan}",
@@ -133,36 +142,45 @@ print_table <- function(widths, align, kind, header, body, footnotes, opts) {
   header = glue::glue_collapse(apply(header, 1, \(x) print_row(x)), sep = ",\n    "),
   body = glue::glue_collapse(apply(body, 1, \(x) print_row(x)), sep = ",\n    "),
   footnotes = glue::glue_collapse(footnotes, sep = "\n\n  "),
-  caption = if (length(opts$table.caption)) glue::glue(",\ncaption: figure.caption(position: top)[{opts$table.caption}]"),
-  placement = if (length(opts$table.caption)) glue::glue(",\nplacement: {opts$table.placement}"),
-  label = if (length(opts$table.label)) glue::glue(" <{opts$table.label}>"),
-  landscape_head = if (opts$page.landscape) glue::glue("#page(flipped: true)[\n"),
-  landscape_tail = if (opts$page.landscape) glue::glue("]"),
+  caption = if (length(opts$caption)) glue::glue(",\ncaption: figure.caption(position: top)[{opts$caption}]"),
+  placement = if (length(opts$caption)) glue::glue(",\nplacement: {opts$placement}"),
+  label = if (length(opts$label)) glue::glue(" <{opts$label}>"),
+  landscape_head = if (opts$landscape) glue::glue("#page(flipped: true)[\n"),
+  landscape_tail = if (opts$landscape) glue::glue("]"),
   .null = NULL,
   .trim = FALSE
   )
 }
 
 print_row <- function(row) {
-  glue::glue_collapse(vapply(row, \(x) x[[1]], character(1)),
-                      sep = ", ")
+  drop <- vapply(row, \(x) length(x) == 0, logical(1))
+  glue::glue_collapse(row[!drop], sep = ", ")
 }
 
-add_footnote_refs <- function(out, x, opts) {
-  fns <- get_footnotes(x, opts)
+add_footnote_refs <- function(out, x, fns, opts) {
+  fns <- get_footnotes(x, fns, opts)
   if (is.null(fns)) out else glue::glue(
     "{out}{fn}",
-    fn = glue::glue("#super[", fn, "]"),
+    fn = glue::glue("#super[", fns, "]"),
     .null = NULL,
-    .na = opts$cells.na
+    .na = opts$na
   )
 
 }
 
-get_footnotes <- function(x, opts) {
-  fn_num <- if (!is.null(attr(x, "footnote_num"))) glue::glue_collapse(get_fn_num(attr(x, "footnote_num"), opts$table.footnotes.number), sep = ",")
-  fn_alph <- if (!is.null(attr(x, "footnote_alph"))) glue::glue_collapse(get_fn_alph(attr(x, "footnote_alph"), opts$table.footnotes.alphabet), sep = ",")
-  fn_sym <- if (!is.null(attr(x, "footnote_sym"))) glue::glue_collapse(get_fn_sym(attr(x, "footnote_sym"), opts$table.footnotes.symbol), sep = ",")
+get_footnotes <- function(x, fns, opts) {
+  fn_num <- if (!is.null(attr(x, "footnote_num"))) {
+    idxs <- fns[fns$type == "number", ]$ref
+    glue::glue_collapse(get_fn_num(idxs[attr(x, "footnote_num")], opts$footnotes.number), sep = ",")
+  }
+  fn_alph <- if (!is.null(attr(x, "footnote_alph"))) {
+    idxs <- fns[fns$type == "alphabet", ]$ref
+    glue::glue_collapse(get_fn_alph(idxs[attr(x, "footnote_alph")], opts$footnotes.alphabet), sep = ",")
+  }
+  fn_sym <- if (!is.null(attr(x, "footnote_sym"))) {
+    idxs <- fns[fns$type == "symbol", ]$ref
+    glue::glue_collapse(get_fn_sym(idxs[attr(x, "footnote_sym")], opts$footnotes.symbol), sep = ",")
+  }
   fn <- glue::glue(fn_num, fn_alph, fn_sym, .sep = ",", .null = NULL)
   if (length(fn)) fn else NULL
 }
@@ -172,22 +190,26 @@ get_fn_num <- function(num, style) {
 }
 
 get_fn_alph <- function(num, style) {
-  switch(style, lower = letters[num], upper = LETTERS[num])
+  out <- character(length(num))
+  out[num != 0] <- switch(style, lower = letters[num], upper = LETTERS[num])
+  out
 }
 
 get_fn_sym <- function(num, style) {
-  switch(style, standard = syms_standard[num], extended = syms_extended[num])
+  out <- character(length(num))
+  out[num != 0] <- switch(style, standard = syms_standard[num], extended = syms_extended[num])
+  out
 }
 
 syms_standard <- c("#sym.ast.op", "#sym.dagger", "#sym.dagger.double", "#sym.section")
 syms_extended <- c(syms_standard, "#sym.bar.v.double", "#sym.pilcrow")
 
 add_indents <- function(out, x, opts) {
-  if (is.null(attr(x, "indent"))) out else glue::glue(
+  if (is.null(attr(x, "indent")) || vec_cast(attr(x, "indent"), character()) == "0") out else glue::glue(
     "{indent}{out}",
     indent = glue::glue("#h(", format(attr(x, "indent")), ")"),
     .null = NULL,
-    .na = opts$cells.na
+    .na = opts$na
   )
 }
 
@@ -197,10 +219,10 @@ add_textstyle <- function(out, x, opts) {
   italic <- if (!is.null(attr(x, "italic"))) glue::glue("style: \"{italic}\"",
                                                         italic = if (attr(x, "italic")) "italic" else "normal")
   size <- if (!is.null(attr(x, "size"))) glue::glue("size: {size}",
-                                                    size = glue::glue("{attr(x, 'size')}pt"))
+                                                    size = glue::glue("{attr(x, 'size')}"))
   styles <- glue::glue(bold, italic, size, .sep = ", ", .null = NULL)
   if (length(styles) == 0) out else glue::glue("#text({styles})[{out}]",
-                                               .null = NULL, .na = opts$cells.na)
+                                               .null = NULL, .na = opts$na)
 }
 
 restore_attributes <- function(out, x, attrs = c("colspan", "rowspan", "combine", "align", "stroke")) {

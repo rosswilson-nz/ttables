@@ -13,7 +13,7 @@ ttab(
   align = "auto",
   widths = "auto",
   placement = "auto",
-  fontsize = NA_real_
+  fontsize = NULL
 )
 }
 \arguments{
@@ -23,23 +23,42 @@ ttab(
 
 \item{label}{Table label, used for cross-referencing}
 
-\item{align}{Column alignment. Either a single value or a vector with the
-same length as the number of columns in \code{x}. Possible values are
-\code{"left"},  \code{"center"}, \code{"right"}.}
+\item{rownames}{Passed to \code{\link[tibble:as_tibble]{tibble::as_tibble()}}. How to treat existing row
+names of \code{x}.}
 
-\item{widths}{Columns widths. Either 'auto' for automatically determined
-column widths, a vector of numeric values (for relative widths), or a
-vector of Typst track sizes ('auto' or Typst fixed, relative, or
-fractional lengths).}
+\item{colnames}{Column names to be used in the table. Default is to take the
+existing column names of \code{x}.}
 
-\item{placement}{(optional) Table placement. As in Typst's #figure() function.}
+\item{align}{Column alignment. Either \code{"auto"} or a vector with the
+same length as the number of columns in \code{x}. Each element should be a
+Typst \href{https://typst.app/docs/reference/layout/alignment/}{alignment}
+specification. A single non-\code{"auto"} value will be recycled to the number
+of columns of \code{x}.}
 
-\item{footnotes}{Footnotes to add below the table. Pass a vector for multiple
-footnotes. At this stage, footnote numbering needs to be added manually
-(as does the corresponding numbering in table cells).}
+\item{widths}{Columns widths. Either \code{"auto"} for automatically determined
+column widths, \code{"span"} for equal widths spanning the full page, or a
+vector of Typst \href{https://typst.app/docs/reference/layout/grid/}{track sizes}.
+A numeric vector will be taken as fractional lengths.}
+
+\item{placement}{Table placement. Either \code{"none"}, \code{"auto"}, \code{"top"},
+\code{"bottom"}. The default is \code{"auto"}. See the Typst
+\href{https://typst.app/docs/reference/model/figure/#parameters-placement}{figure}
+documentation for details.}
+
+\item{fontsize}{Font size. A Typst
+\href{https://typst.app/docs/reference/text/text/#parameters-size}{length}
+specification. A numeric \code{fontsize} will be taken as points.}
+}
+\value{
+A \code{typst_table} object describing the table content, formatting, and
+layout.
 }
 \description{
 This is a table generator inspired by \emph{kableExtra} and \emph{gt}. This base
 function takes an R data frame and sets up a basic Typst table. Auxiliary
 functions allow the adding of additional formatting features.
+}
+\examples{
+ttab(mtcars)
+
 }
