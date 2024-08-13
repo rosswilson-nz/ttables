@@ -16,7 +16,7 @@
 #' @returns A Typst table with the new header row added.
 #' @export
 add_header <- function(x, content, position = 1, span = list()) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   if (!is.character(content)) stop("'content' must be a character vector")
   if (!rlang::is_list(span)) rlang::abort("'span' must be a list")
   if (!all(vapply(span, \(s) rlang::is_bare_numeric(s, 2), logical(1)))) rlang::abort("Each span element must be a vector c(<start-column>, <width>)")

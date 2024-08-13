@@ -18,7 +18,7 @@
 #' @returns A Typst table with the specified grouped rows.
 #' @export
 pack_rows <- function(x, start, nrows, label = NULL, italic = TRUE, bold = FALSE, align = NULL, indent = TRUE) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   if (!(is.numeric(start) && length(start) == 1 && is_wholenumber(start))) stop("'start' must be an integer scalar")
   start <- resolve_location(cells(columns = 1, rows = start), x)
   if (!(is.numeric(nrows) && length(nrows) == 1 & is_wholenumber(nrows))) stop("'nrows' must be an integer scalar")
@@ -34,7 +34,9 @@ pack_rows <- function(x, start, nrows, label = NULL, italic = TRUE, bold = FALSE
   new_row <- tibble::tibble({{firstvar}} := label, `_insert_before` = start$rows)
   x$`_added_rows` <- tibble::add_row(x$`_added_rows`, new_row)
   x <- x %>%
+    colspan(cells(1, !!nrow(x$`_added_rows`), "added_rows"), ncol(x$`_added_rows`) - 1) %>%
     format_cells(cells(1, !!nrow(x$`_added_rows`), "added_rows"), bold = bold, italic = italic, align = align)
   }
-  x %>% add_indent(cells(1, start$rows + seq_len(nrows) - 1), indent)
+  if (indent != "0") x <- x %>% add_indent(cells(1, start$rows + seq_len(nrows) - 1), indent)
+  x
 }

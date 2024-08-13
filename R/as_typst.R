@@ -1,10 +1,15 @@
-#' Print a `typst_table` object as raw Typst
+#' Print a Typst table or figure object as raw Typst
 #'
-#' @param x A Typst table
+#' @param x A Typst table or figure (`ttables_tbl` or `ttables_fig`)
 #' @returns A `glue` string containing the raw Typst output.
 #'
 #' @export
 as_typst <- function(x) {
+  UseMethod("as_typst", x)
+}
+
+#' @export
+as_typst.ttables_tbl <- function(x) {
   x <- extract_table(x)
 
   widths <- print_widths(x$opts$widths, ncol(x$header))
@@ -201,7 +206,7 @@ get_fn_sym <- function(num, style) {
   out
 }
 
-syms_standard <- c("#sym.ast.op", "#sym.dagger", "#sym.dagger.double", "#sym.section")
+syms_standard <- c("#sym.star.filled", "#sym.dagger", "#sym.dagger.double", "#sym.section")
 syms_extended <- c(syms_standard, "#sym.bar.v.double", "#sym.pilcrow")
 
 add_indents <- function(out, x, opts) {

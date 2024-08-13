@@ -5,9 +5,10 @@
 #' @returns A Typst table with the landscape page specification.
 #' @export
 landscape <- function(x) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  if (inherits(x, "ttables_tbl")) return(set_table_options(x, landscape = TRUE))
+  if (inherits(x, "ttables_fig")) return(set_figure_options(x, landscape = TRUE))
 
-  set_table_options(x, landscape = TRUE)
+  stop("'x' must be a `ttables_tbl` or `ttables_fig` object")
 }
 
 #' Mark a Typst table as supplementary material
@@ -17,7 +18,7 @@ landscape <- function(x) {
 #' @returns A Typst table with the supplementary material specification.
 #' @export
 supplement <- function(x) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
-
-  set_table_options(x, supplement = TRUE)
+  if (inherits(x, "ttables_tbl")) return(set_table_options(x, supplement = TRUE))
+  if (inherits(x, "ttables_fig")) return(set_figure_options(x, supplement = TRUE))
+  stop("'x' must be a `ttables_tbl` or `ttables_fig` object")
 }

@@ -28,7 +28,7 @@
 #'     [length](https://typst.app/docs/reference/text/text/#parameters-size)
 #'     specification. A numeric `fontsize` will be taken as points.
 #'
-#' @returns A `typst_table` object describing the table content, formatting, and
+#' @returns A `ttables_tbl` object describing the table content, formatting, and
 #'     layout.
 #'
 #' @examples
@@ -37,6 +37,7 @@
 #' @export
 ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "auto",
                  widths = "auto", placement = "auto", fontsize = NULL) {
+  ### To be added: 'gutter' parameter (matching to `column-gutter` and `row-gutter` in Typst's `table` function)
   if (!is.data.frame(x)) stop("'x' must be a data frame")
 
   `_body` <- tibble::as_tibble(x, rownames = rownames)
@@ -93,5 +94,5 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     `_body` = `_body`,
     `_added_rows` = `_added_rows`,
     `_footnotes` = `_footnotes`
-  ), class = "typst_table")
+  ), class = "ttables_tbl")
 }

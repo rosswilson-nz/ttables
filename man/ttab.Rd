@@ -50,7 +50,7 @@ documentation for details.}
 specification. A numeric \code{fontsize} will be taken as points.}
 }
 \value{
-A \code{typst_table} object describing the table content, formatting, and
+A \code{ttables_tbl} object describing the table content, formatting, and
 layout.
 }
 \description{

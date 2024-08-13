@@ -1,3 +1,3 @@
-test_that("ttab() produces a `typst_table` object", {
-  expect_s3_class(ttab(mtcars), "typst_table")
+test_that("ttab() produces a `ttables_tbl` object", {
+  expect_s3_class(ttab(mtcars), "ttables_tbl")
 })

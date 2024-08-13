@@ -12,7 +12,7 @@
 #' @returns A Typst table with the footnote added.
 #' @export
 add_footnote <- function(x, content, type = "general", location) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   if (!is.character(content)) stop("'content' must be a character vector")
   if (!is.character(type) || length(type) != 1 || !(type %in% c("general", "number", "alphabet", "symbol")))
     stop("'type' must be one of c('general', 'number', 'alphabet', 'symbol'")

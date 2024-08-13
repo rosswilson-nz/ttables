@@ -1,5 +1,5 @@
 extract_table <- function(x) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
 
   nc <- ncol(x$`_body`)
   nr <- nrow(x$`_body`)

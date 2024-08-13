@@ -19,7 +19,8 @@
 #'
 #' @export
 format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL, size = NULL) {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  ### To be added: 'stroke' (matching Typst's stroke parameter)
+  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   location <- expand_location(resolve_location(location, x))
 
   if (!is.null(bold) && !(is.logical(bold) && length(bold) == 1)) stop("'bold' must be a logical scalar")
@@ -71,7 +72,7 @@ merge_formats <- function(old, new) {
 #' @returns A Typst table with indentation added to the specified cells.
 #' @export
 add_indent <- function(x, location, amount = "1em") {
-  if (!inherits(x, "typst_table")) stop("'x' must be a `typst_table` object")
+  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   location <- expand_location(resolve_location(location, x))
   if (is.numeric(amount)) amount <- paste0(amount, "em")
   indent <- as_length(amount)

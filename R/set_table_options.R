@@ -193,7 +193,7 @@ set_table_options <- function(x, align, widths, placement, caption,
                               label, footnotes.order, footnotes.number,
                               footnotes.alphabet, footnotes.symbol, footnotes.direction,
                               supplement, landscape, na) {
-  stopifnot(inherits(x, "typst_table"))
+  stopifnot(inherits(x, "ttables_tbl"))
 
   opts <- x$`_opts`
 

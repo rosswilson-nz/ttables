@@ -2,16 +2,16 @@
 % Please edit documentation in R/as_typst.R
 \name{as_typst}
 \alias{as_typst}
-\title{Print a \code{typst_table} object as raw Typst}
+\title{Print a Typst table or figure object as raw Typst}
 \usage{
 as_typst(x)
 }
 \arguments{
-\item{x}{A Typst table}
+\item{x}{A Typst table or figure (\code{ttables_tbl} or \code{ttables_fig})}
 }
 \value{
 A \code{glue} string containing the raw Typst output.
 }
 \description{
-Print a \code{typst_table} object as raw Typst
+Print a Typst table or figure object as raw Typst
 }
