@@ -8,9 +8,9 @@ tfig(
   x,
   caption = NULL,
   label = NULL,
-  placement = NULL,
-  width = NULL,
-  height = NULL,
+  placement = "auto",
+  width = "auto",
+  height = "auto",
   footnotes = NULL
 )
 }

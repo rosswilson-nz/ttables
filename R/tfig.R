@@ -10,8 +10,8 @@
 #' @param footnotes Footnotes to add below the table.
 #'
 #' @export
-tfig <- function(x, caption = NULL, label = NULL, placement = NULL,
-                 width = NULL, height = NULL, footnotes = NULL) {
+tfig <- function(x, caption = NULL, label = NULL, placement = "auto",
+                 width = "auto", height = "auto", footnotes = NULL) {
   `_image` <- check_image_path(x)
 
   `_opts` <- collate_initial_figure_opts(caption = caption,
