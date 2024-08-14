@@ -26,7 +26,7 @@ add_header <- function(x, content, position = 1, span = list()) {
     s <- span[[i]]
     if (is.null(names(s))) names(s) <- c("column", "width")
     spans[[i]] <- list(cell = cells(!!s[["column"]], !!position, "header"),
-                       size = s[["width"]] - 1)
+                       size = s[["width"]])
     content <- append(content, rep("", s[["width"]] - 1), s[["column"]])
   }
   if (length(content) != ncol(x$`_header`)) stop("'content' must have one entry per table column")
