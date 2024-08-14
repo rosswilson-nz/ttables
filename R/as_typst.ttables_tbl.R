@@ -40,8 +40,8 @@ print_align <- function(align, nc) {
 print_gutter <- function(gutter) {
   if (is.null(gutter)) return(NULL)
   g <- unclass(gutter)
-  column <- if (!is.null(g$column)) glue::glue("column-gutter: {column}", column = format(g$column))
-  row <- if (!is.null(g$row)) glue::glue("row-gutter: {row}", row = format(g$row))
+  column <- if (!(is.null(g$column) | is.na(g$column))) glue::glue("column-gutter: {column}", column = format(g$column))
+  row <- if (!(is.null(g$row) | is.na(g$row))) glue::glue("row-gutter: {row}", row = format(g$row))
   glue::glue(column, row, .sep = ", ", .null = NULL)
 }
 

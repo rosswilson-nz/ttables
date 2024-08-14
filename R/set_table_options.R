@@ -74,9 +74,17 @@ check_gutter <- function(x) {
   }
   if (rlang::is_bare_list(x) && rlang::is_named(x) && all(names(x) %in% c("row", "column"))) {
     n <- nchar(x$column)
-    column <- if (substr(x$column, n - 1, n) == "fr") as_fractional_length(x$column) else as_relative(x$column)
+    column <- if (is.null(x$column)) {
+      relative()
+    } else if (substr(x$column, n - 1, n) == "fr") {
+      as_fractional_length(x$column)
+    } else as_relative(x$column)
     n <- nchar(x$row)
-    row <- if (substr(x$row, n - 1, n) == "fr") as_fractional_length(x$row) else as_relative(x$row)
+    row <- if (is.null(x$row)) {
+      relative()
+    } else if (substr(x$row, n - 1, n) == "fr") {
+      as_fractional_length(x$row)
+    } else as_relative(x$row)
     return(gutter(column, row))
   }
   rlang::abort("Invalid gutter")
