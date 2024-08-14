@@ -11,7 +11,8 @@ format_cells(
   italic = NULL,
   align = NULL,
   indent = NULL,
-  size = NULL
+  size = NULL,
+  stroke = NULL
 )
 }
 \arguments{
@@ -27,12 +28,17 @@ object created by \code{\link[=cells]{cells()}}.}
 specification.}
 
 \item{indent}{How much to indent cell contents. Should be a Typst
-\href{https://typst.app/docs/reference/text/text/#parameters-size}{length}
-specification. A numeric \code{indent} will be taken as 'em' units.}
+\href{https://typst.app/docs/reference/layout/length/}{length} specification.
+A numeric \code{indent} will be taken as 'em' units.}
 
 \item{size}{Font size. Should be a Typst
-\href{https://typst.app/docs/reference/text/text/#parameters-size}{length}
-specification. A numeric \code{size} will be taken as points.}
+\href{https://typst.app/docs/reference/layout/length/}{length} specification.
+A numeric \code{size} will be taken as points.}
+
+\item{stroke}{Cell stroke (border) style. Should be Typst
+\href{https://typst.app/docs/reference/visualize/stroke/}{stroke}
+specification. Only the paint and thickness components are supported for
+now.}
 }
 \value{
 A Typst table with formatting specification applied to the given

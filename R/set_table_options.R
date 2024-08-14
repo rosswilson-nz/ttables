@@ -1,8 +1,9 @@
-new_table_opts <- function(widths = auto(), align, placement, caption, label, footnotes.order, footnotes.number,
+new_table_opts <- function(widths, align, gutter, placement, caption, label, footnotes.order, footnotes.number,
                            footnotes.alphabet, footnotes.symbol, footnotes.direction,
                            supplement, landscape, na) {
   if (missing(widths)) widths <- auto()
   if (missing(align)) align <- auto()
+  if (missing(gutter)) gutter <- auto()
   if (missing(placement)) placement <- auto()
   if (missing(caption)) caption <- character()
   if (missing(label)) label <- character()
@@ -18,6 +19,7 @@ new_table_opts <- function(widths = auto(), align, placement, caption, label, fo
   structure(
     list(widths = widths,
          align = align,
+         gutter = gutter,
          placement = placement,
          caption = caption,
          label = label,
@@ -35,7 +37,7 @@ new_table_opts <- function(widths = auto(), align, placement, caption, label, fo
 
 #' @export
 print.ttables_table_opts <- function(x, ...) {
-  x
+  NextMethod()
 }
 
 check_widths <- function(x, ncols) {
@@ -60,6 +62,24 @@ check_align <- function(x, ncols) {
     stopifnot(length(x) == ncols)
     as_alignment(x)
   }
+}
+
+check_gutter <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (rlang::is_scalar_character(x)) {
+    if (x == "auto") x <- auto()
+    n <- nchar(x)
+    x <- if (substr(x, n - 1, n) == "fr") as_fractional_length(x) else as_relative(x)
+    return(gutter(x, x))
+  }
+  if (rlang::is_bare_list(x) && rlang::is_named(x) && all(names(x) %in% c("row", "column"))) {
+    n <- nchar(x$column)
+    column <- if (substr(x$column, n - 1, n) == "fr") as_fractional_length(x$column) else as_relative(x$column)
+    n <- nchar(x$row)
+    row <- if (substr(x$row, n - 1, n) == "fr") as_fractional_length(x$row) else as_relative(x$row)
+    return(gutter(column, row))
+  }
+  rlang::abort("Invalid gutter")
 }
 
 check_placement <- function(x) {
@@ -125,28 +145,17 @@ check_na <- function(x) {
   rlang::abort("'na' must be a character scalar")
 }
 
-auto <- function() structure("auto", class = "auto")
-#' @export
-format.auto <- function(x, ...) "auto"
-#' @export
-print.auto <- function(x, ...) cat("auto")
-is_auto <- function(x) inherits(x, "auto")
-none <- function() structure("none", class = "none")
-#' @export
-format.none <- function(x, ...) "none"
-#' @export
-print.none <- function(x, ...) cat("none")
-is_none <- function(x) inherits(x, "none")
-
-collate_initial_table_opts <- function(widths, align, placement, caption, label, ncols) {
+collate_initial_table_opts <- function(widths, align, gutter, placement, caption, label, ncols) {
   widths <- check_widths(widths, ncols)
   align <- check_align(align, ncols)
+  gutter <- check_gutter(gutter)
   placement <- check_placement(placement)
   caption <- check_caption(caption)
   label <- check_label(label)
 
   new_table_opts(widths = widths,
                  align = align,
+                 gutter = gutter,
                  placement = placement,
                  caption = caption,
                  label = label)
@@ -163,6 +172,9 @@ collate_initial_table_opts <- function(widths, align, placement, caption, label,
 #'     column widths, `"span"` for equal widths spanning the full page, or a
 #'     vector of Typst track sizes. A numeric vector will be taken as fractional
 #'     lengths.
+#' @param gutter The gaps between table cells. Should be a list with elements
+#'     `column` and `row`, each element being either `"auto"` or a Typst
+#'     [length](https://typst.app/docs/reference/layout/length/) specification.
 #' @param placement Table placement. Either `"none"`, `"auto"`, `"top"`,
 #'     `"bottom"`. The default is `"auto"`.
 #' @param caption The table caption.
@@ -189,7 +201,7 @@ collate_initial_table_opts <- function(widths, align, placement, caption, label,
 #' @param na Character string to print for `NA` values. Default is `"---"`.
 #'
 #' @returns A Typst table with the specified options set.
-set_table_options <- function(x, align, widths, placement, caption,
+set_table_options <- function(x, align, widths, gutter, placement, caption,
                               label, footnotes.order, footnotes.number,
                               footnotes.alphabet, footnotes.symbol, footnotes.direction,
                               supplement, landscape, na) {
@@ -200,6 +212,7 @@ set_table_options <- function(x, align, widths, placement, caption,
   if (!missing(align)) opts$align <- check_align(align, ncol(x$`_data`))
   if (!missing(widths)) opts$widths <- check_widths(widths, ncol(x$`_data`))
   if (!missing(placement)) opts$placement <- check_placement(placement)
+  if (!missing(gutter)) opts$gutter <- check_gutter(gutter)
   if (!missing(caption)) opts$caption <- check_caption(caption)
   if (!missing(label)) opts$label <- check_label(label)
   if (!missing(footnotes.order)) opts$footnotes.order <- check_footnotes.order(footnotes.order)

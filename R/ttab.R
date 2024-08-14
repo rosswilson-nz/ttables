@@ -27,6 +27,9 @@
 #' @param fontsize Font size. A Typst
 #'     [length](https://typst.app/docs/reference/text/text/#parameters-size)
 #'     specification. A numeric `fontsize` will be taken as points.
+#' @param gutter The gaps between table cells. Should be a list with elements
+#'     `column` and `row`, each element being either `"auto"` or a Typst
+#'     [length](https://typst.app/docs/reference/layout/length/) specification.
 #'
 #' @returns A `ttables_tbl` object describing the table content, formatting, and
 #'     layout.
@@ -36,8 +39,7 @@
 #'
 #' @export
 ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "auto",
-                 widths = "auto", placement = "auto", fontsize = NULL) {
-  ### To be added: 'gutter' parameter (matching to `column-gutter` and `row-gutter` in Typst's `table` function)
+                 widths = "auto", placement = "auto", fontsize = NULL, gutter = NULL) {
   if (!is.data.frame(x)) stop("'x' must be a data frame")
 
   `_body` <- tibble::as_tibble(x, rownames = rownames)
@@ -60,11 +62,13 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     italic = NA,
     align = NA_character_,
     indent = NA_length_,
-    size = fontsize
+    size = fontsize,
+    stroke = list(NULL)
   )
 
   `_opts` <- collate_initial_table_opts(widths = widths,
                                         align = align,
+                                        gutter = gutter,
                                         placement = placement,
                                         caption = caption,
                                         label = label,

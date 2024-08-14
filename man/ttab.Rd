@@ -13,7 +13,8 @@ ttab(
   align = "auto",
   widths = "auto",
   placement = "auto",
-  fontsize = NULL
+  fontsize = NULL,
+  gutter = NULL
 )
 }
 \arguments{
@@ -48,6 +49,10 @@ documentation for details.}
 \item{fontsize}{Font size. A Typst
 \href{https://typst.app/docs/reference/text/text/#parameters-size}{length}
 specification. A numeric \code{fontsize} will be taken as points.}
+
+\item{gutter}{The gaps between table cells. Should be a list with elements
+\code{column} and \code{row}, each element being either \code{"auto"} or a Typst
+\href{https://typst.app/docs/reference/layout/length/}{length} specification.}
 }
 \value{
 A \code{ttables_tbl} object describing the table content, formatting, and

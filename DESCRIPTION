@@ -1,6 +1,6 @@
 Package: ttables
 Title: Create Typst Tables in R
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     person("Ross", "Wilson", , "ross.wilson@otago.ac.nz", role = c("aut", "cre"))
 Description: The `ttables` package creates nicely formatted Typst tables from R
@@ -12,6 +12,7 @@ RoxygenNote: 7.3.1
 URL: https://github.com/uo-cmor/ttables
 BugReports: https://github.com/uo-cmor/ttables/issues
 Imports: 
+    cli,
     dplyr,
     fs,
     glue,
@@ -24,3 +25,35 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Collate: 
+    'abs_length.R'
+    'add_footnote.R'
+    'add_header.R'
+    'alignment.R'
+    'as_typst.R'
+    'as_typst.ttables_fig.R'
+    'as_typst.ttables_tbl.R'
+    'auto.R'
+    'cell-locations.R'
+    'cell-spans.R'
+    'colour.R'
+    'dash.R'
+    'dictionary.R'
+    'em_length.R'
+    'extract_table.R'
+    'extras.R'
+    'format-cells.R'
+    'fractional-lengths.R'
+    'ratio.R'
+    'length.R'
+    'relative.R'
+    'gutter.R'
+    'pack_rows.R'
+    'set_figure_options.R'
+    'set_table_options.R'
+    'stroke.R'
+    'tfig.R'
+    'ttab.R'
+    'ttables-doc.R'
+    'utils.R'
+    'width.R'

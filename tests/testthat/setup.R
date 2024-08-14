@@ -7,6 +7,7 @@ x0 <- ttab(
   colnames = c("Model", "MPG", "Cylinders", "Displacement", "HP", "Rear axle ratio"),
   align = c("left", "center", "centre", rep("right", 3)),
   widths = paste0(c(30, rep(12, 5)), "mm"),
+  gutter = list(column = "2pt", row = "1pt"),
   placement = "none",
   fontsize = 8
 )
@@ -29,4 +30,4 @@ x4 <- x3 %>%
   pack_rows(4, 2, "Hornet")
 
 x5 <- x4 %>%
-  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "1.5em")
+  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "1.5em", stroke = list(bottom = "1pt + red"))

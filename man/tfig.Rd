@@ -25,9 +25,7 @@ tfig(
 
 \item{width, height}{(optional) Image width and height. As in Typst's #image() function.}
 
-\item{footnotes}{Footnotes to add below the table. Pass a vector for multiple
-footnotes. At this stage, footnote numbering needs to be added manually
-(as does the corresponding numbering in table cells).}
+\item{footnotes}{Footnotes to add below the table.}
 }
 \description{
 This wraps the path to a saved image in a Typst figure environment with caption and label.

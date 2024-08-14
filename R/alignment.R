@@ -93,7 +93,7 @@ vec_arith.ttables_vert_alignment.ttables_horiz_alignment <- function(op, x, y, .
 
 new_alignment <- function(x = horiz_alignment(), y = vert_alignment()) {
   if (!(is_horiz_alignment(x))) rlang::abort("'x' must be a horizontal alignment (`ttables_horiz_alignment`) vector.")
-  if (!(is_vert_alignment(y))) rlang::abort("'x' must be a vertical alignment (`ttables_vert_alignment`) vector.")
+  if (!(is_vert_alignment(y))) rlang::abort("'y' must be a vertical alignment (`ttables_vert_alignment`) vector.")
   new_rcrd(list(x = x, y = y), class = "ttables_alignment")
 }
 alignment <- function(horiz = horiz_alignment(), vert = vert_alignment()) {
@@ -137,9 +137,9 @@ vec_cast.ttables_alignment.character <- function(x, to, ...) {
 }
 #' @export
 vec_cast.character.ttables_alignment <- function(x, to, ...) format(x)
-get_horiz_part <- function(x) extract_text(x, "left|centre|center|right")
-get_vert_part <- function(x) extract_text(x, "top|horizon|bottom")
-extract_text <- function(x, pattern) {
+get_horiz_part <- function(x) extract_alignment_text(x, "left|centre|center|right")
+get_vert_part <- function(x) extract_alignment_text(x, "top|horizon|bottom")
+extract_alignment_text <- function(x, pattern) {
   out <- rep(NA_character_, length(x))
   idx <- grep(pattern, x, ignore.case = TRUE)
   m <- gregexpr(pattern, x, ignore.case = TRUE)

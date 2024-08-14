@@ -2,7 +2,7 @@
 % Please edit documentation in R/set_figure_options.R
 \name{set_figure_options}
 \alias{set_figure_options}
-\title{Set Typst table options}
+\title{Set Typst figre options}
 \usage{
 set_figure_options(
   x,
@@ -16,9 +16,11 @@ set_figure_options(
 )
 }
 \arguments{
-\item{x}{A Typst table}
+\item{x}{A Typst figure}
 
-\item{width, height}{Figure width and height.}
+\item{width, height}{Figure width and height. Either \code{"auto"} or a Typst
+\href{https://typst.app/docs/reference/visualize/image/#parameters-width}{length}
+specification.}
 
 \item{placement}{Figure placement. Either \code{"none"}, \code{"auto"}, \code{"top"},
 \code{"bottom"}. The default is \code{"auto"}.}
@@ -39,5 +41,5 @@ page. Default is \code{FALSE}.}
 A Typst figure with the specified options set.
 }
 \description{
-Set Typst table options
+Set Typst figre options
 }

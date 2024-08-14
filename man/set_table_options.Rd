@@ -8,6 +8,7 @@ set_table_options(
   x,
   align,
   widths,
+  gutter,
   placement,
   caption,
   label,
@@ -33,6 +34,10 @@ value will be recycled to the number of columns of \code{x}.}
 column widths, \code{"span"} for equal widths spanning the full page, or a
 vector of Typst track sizes. A numeric vector will be taken as fractional
 lengths.}
+
+\item{gutter}{The gaps between table cells. Should be a list with elements
+\code{column} and \code{row}, each element being either \code{"auto"} or a Typst
+\href{https://typst.app/docs/reference/layout/length/}{length} specification.}
 
 \item{placement}{Table placement. Either \code{"none"}, \code{"auto"}, \code{"top"},
 \code{"bottom"}. The default is \code{"auto"}.}
