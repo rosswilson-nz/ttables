@@ -1,3 +1,11 @@
+# ttables 0.2.1
+
+* Correct column spans in `add_header()`
+
+* Correct output with table gutter specified.
+
+* Correct default values in `tfig()`.
+
 # ttables 0.2.0
 
 * Add cell stroke and table gutter options.
