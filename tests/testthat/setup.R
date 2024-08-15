@@ -30,4 +30,4 @@ x4 <- x3 %>%
   pack_rows(4, 2, "Hornet")
 
 x5 <- x4 %>%
-  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "1.5em", stroke = list(bottom = "1pt + red"))
+  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "12pt", stroke = list(bottom = "1pt + red"))

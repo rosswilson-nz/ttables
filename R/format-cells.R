@@ -22,7 +22,8 @@
 #'     cell(s).
 #'
 #' @export
-format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL, size = NULL, stroke = NULL) {
+format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL,
+                         size = NULL, stroke = NULL) {
   if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   location <- expand_location(resolve_location(location, x))
 

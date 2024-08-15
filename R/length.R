@@ -12,8 +12,8 @@ ttables_length <- function(abs = abs_length(), em = em_length()) {
   inputs <- vec_recycle_common(abs, em)
   abs <- inputs[[1]]
   em <- inputs[[2]]
-  abs[is.na(abs) & !is.na(em)] <- abs_length(0, "pt")
-  em[is.na(em) & !is.na(abs)] <- em_length(0)
+  if (any(is.na(abs) & !is.na(em))) abs[is.na(abs) & !is.na(em)] <- abs_length(0, "pt")
+  if (any(is.na(em) & !is.na(abs))) em[is.na(em) & !is.na(abs)] <- em_length(0)
   new_length(abs, em)
 }
 #' @export
@@ -85,11 +85,6 @@ extract_em_length <- function(x) {
 vec_cast.ttables_length.ttables_abs_length <- function(x, to, ...) ttables_length(abs = x)
 #' @export
 vec_cast.ttables_length.ttables_em_length <- function(x, to, ...) ttables_length(em = x)
-#' @export
-vec_cast.ttables_length.ttables_length <- function(x, to, ...) {
-  abs <- vec_cast(field(x, "abs"), field(to, "abs"))
-  new_length(abs, field(x, "em"))
-}
 #' @export
 vec_proxy_compare.ttables_length <- function(x, ...) {
   rlang::abort("Comparison of `ttables_length` objects is not implemented.")

@@ -1,4 +1,4 @@
-#' @include relative.R auto.R
+#' @include relative.R auto.R fractional-length.R
 NULL
 
 new_gutter <- function(column = relative(), row = relative()) {
