@@ -1,4 +1,4 @@
-#' @include relative.R auto.R
+#' @include relative.R auto.R fractional-length.R
 NULL
 
 new_gutter <- function(column = relative(), row = relative()) {
@@ -9,8 +9,8 @@ new_gutter <- function(column = relative(), row = relative()) {
   new_rcrd(list(column = column, row = row), class = "ttables_gutter")
 }
 gutter <- function(column = relative(), row = relative()) {
-  if (!is_fractional_length(column)) column <- vec_cast(column, relative())
-  if (!is_fractional_length(row)) row <- vec_cast(row, relative())
+  if (!(is_auto(column) || is_fractional_length(column))) column <- vec_cast(column, relative())
+  if (!(is_auto(row) || is_fractional_length(row))) row <- vec_cast(row, relative())
   if (length(column) == 0 && length(row)) column <- rep(NA_relative_, length(row))
   if (length(row) == 0 && length(column)) row <- rep(NA_relative_, length(column))
   inputs <- vec_recycle_common(column, row)

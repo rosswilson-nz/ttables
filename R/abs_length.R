@@ -48,13 +48,7 @@ vec_cast.ttables_abs_length.character <- function(x, to, ...) {
 vec_cast.character.ttables_abs_length <- function(x, to, ...) format(x)
 #' @export
 vec_cast.double.ttables_abs_length <- function(x, to, ...) field(x, "value")
-#' @export
-vec_cast.ttables_abs_length.ttables_abs_length <- function(x, to, ...) x
 as_abs_length <- function(x) vec_cast(x, new_abs_length())
-convert_units <- function(x, from, to) {
-  ratios <- c(pt = 7200, mm = 2540, cm = 254, "in" = 100)
-  unname(x * (ratios[to] / ratios[from]))
-}
 #' @export
 vec_proxy_equal.ttables_abs_length <- function(x, ...) {
   value <- field(x, "value")
@@ -80,8 +74,9 @@ vec_arith.ttables_abs_length.ttables_abs_length <- function(op, x, y, ...) {
   switch(
     op,
     "+" = ,
-    "-" = new_abs_length(vec_arith_base(op, field(x, "value"), field(vec_cast(y, x), "value")), unit = field(x, "unit")),
-    "/" = vec_arith_base(op, x, vec_cast(y, x)),
+    "-" = new_abs_length(vec_arith_base(op, field(x, "value"), as_unit(y, field(x, "unit"))),
+                         unit = field(x, "unit")),
+    "/" = vec_arith_base(op, field(x, "value"), as_unit(y, field(x, "unit"))),
     stop_incompatible_op(op, x, y)
   )
 }

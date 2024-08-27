@@ -15,10 +15,15 @@ format.ttables_dictionary <- function(x, ...) {
 }
 #' @export
 print.ttables_dictionary <- function(x, ...) {
-  cat(format(x))
+  cat(format(x), "\n")
 }
 
 make_string <- function(x) {
   if (rlang::is_bare_character(x[[1]])) paste0('"', x, '"')
   else format(x[[1]])
+}
+
+to_list <- function(x) {
+  if (!inherits(x, "ttables_dictionary")) rlang::abort("'x' must be a dictionary")
+  x[[1]]
 }

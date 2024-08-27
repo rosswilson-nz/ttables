@@ -27,7 +27,7 @@ x3 <- x2 %>%
   add_header(c("", "", "Engine", ""), span = list(c(3, 3)))
 
 x4 <- x3 %>%
-  pack_rows(4, 2, "Hornet")
+  pack_rows(4, 2, "Hornet", indent = "10pt")
 
 x5 <- x4 %>%
-  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "1.5em", stroke = list(bottom = "1pt + red"))
+  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "12pt", stroke = list(bottom = "1pt + red"))

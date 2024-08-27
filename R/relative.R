@@ -11,8 +11,10 @@ relative <- function(length = ttables_length(), ratio = new_ratio()) {
   inputs <- vec_recycle_common(length, ratio)
   length <- inputs[[1]]
   ratio <- inputs[[2]]
-  length[is.na(length) & !is.na(ratio)] <-ttables_length(abs_length(0, "pt"), em_length(0))
-  ratio[is.na(ratio) & !is.na(ratio)] <- ratio(0)
+  if (length(length) > 0) {
+    length[is.na(length) & !is.na(ratio)] <- ttables_length(abs_length(0, "pt"), em_length(0))
+    ratio[is.na(ratio) & !is.na(ratio)] <- ratio(0)
+  }
   new_relative(length, ratio)
 }
 #' @export
@@ -75,13 +77,10 @@ extract_ratio <- function(x) {
 }
 #'@export
 vec_cast.ttables_relative.ttables_length <- function(x, to, ...) relative(length = x)
+#'@export
+vec_cast.ttables_relative.ttables_abs_length <- function(x, to, ...) relative(length = vec_cast(x, ttables_length()))
 #' @export
 vec_cast.ttables_relative.ttables_ratio <- function(x, to, ...) relative(ratio = x)
-#' @export
-vec_cast.ttables_relative.ttables_relative <- function(x, to, ...) {
-  len <- vec_cast(field(x, "length"), field(to, "length"))
-  new_relative(len, field(x, "ratio"))
-}
 #' @export
 vec_proxy_compare.ttables_relative <- function(x, ...) {
   rlang::abort("Comparison of `ttables_relative` objects is not implemented.")
