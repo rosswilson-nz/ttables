@@ -65,23 +65,25 @@ check_align <- function(x, ncols) {
 }
 
 check_gutter <- function(x) {
-  if (is.null(x)) return(NULL)
+  if (is.null(x)) return(gutter(auto(), auto()))
   if (rlang::is_scalar_character(x)) {
-    if (x == "auto") x <- auto()
-    n <- nchar(x)
-    x <- if (substr(x, n - 1, n) == "fr") as_fractional_length(x) else as_relative(x)
+    if (x == "auto") x <- auto() else {
+      n <- nchar(x)
+      x <- if (substr(x, n - 1, n) == "fr") as_fractional_length(x) else as_relative(x)
+    }
     return(gutter(x, x))
   }
   if (rlang::is_bare_list(x) && rlang::is_named(x) && all(names(x) %in% c("row", "column"))) {
+    if (length(x$column) > 1 || length(x$row) > 1) rlang::abort("Row and column gutters must be scalar lengths")
     n <- nchar(x$column)
-    column <- if (is.null(x$column)) {
-      relative()
+    column <- if (is.null(x$column) || x$column == "auto") {
+      auto()
     } else if (substr(x$column, n - 1, n) == "fr") {
       as_fractional_length(x$column)
     } else as_relative(x$column)
     n <- nchar(x$row)
-    row <- if (is.null(x$row)) {
-      relative()
+    row <- if (is.null(x$row) || x$row == "auto") {
+      auto()
     } else if (substr(x$row, n - 1, n) == "fr") {
       as_fractional_length(x$row)
     } else as_relative(x$row)
@@ -101,14 +103,12 @@ check_placement <- function(x) {
 }
 
 check_caption <- function(x) {
-  if (is.null(x)) return(character())
-  if (rlang::is_scalar_character(x)) return(x)
+  if (is.null(x) || rlang::is_scalar_character(x)) return(x)
   rlang::abort("'caption' must be a character string")
 }
 
 check_label <- function(x) {
-  if (is.null(x)) return(character())
-  if (rlang::is_scalar_character(x) && !grepl("[^[:alnum:]_:.-]", x)) return(x)
+  if (is.null(x) || (rlang::is_scalar_character(x) && !grepl("[^[:alnum:]_:.-]", x))) return(x)
   rlang::abort("'label' must be a character string representing a valid Typst label")
 }
 
