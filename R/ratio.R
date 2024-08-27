@@ -34,6 +34,8 @@ vec_cast.ttables_ratio.character <- function(x, to, ...) {
   value <- as.numeric(value)
   new_ratio(value)
 }
+#' @export
+vec_cast.character.ttables_ratio <- function(x, to, ...) format(x)
 as_ratio <- function(x) vec_cast(x, new_ratio())
 #' @export
 #' @method vec_arith ttables_ratio

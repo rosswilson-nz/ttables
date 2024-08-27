@@ -35,7 +35,7 @@ format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, 
   if (!is.null(stroke)) stroke <- check_stroke(stroke)
 
   format <- tibble::tibble(location, bold = bold %||% NA, italic = italic %||% NA,
-                           align = align %||% NA_character_,
+                           align = align %||% NA_alignment_,
                            indent = indent %||% NA_length_,
                            size = size %||% NA_length_,
                            stroke = stroke %||% list(NULL))

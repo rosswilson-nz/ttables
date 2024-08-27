@@ -21,7 +21,7 @@ as_unit.ttables_length <- function(x, to) {
   if (!rlang::is_scalar_character(to) || !(to %in% c("pt", "mm", "cm", "in")))
     rlang::abort("Invalid 'to'")
   em <- field(x, "em")
-  if (all(is.na(em) | as.character(em) == "0")) {
+  if (all(is.na(em) | as.character(em) == "0em")) {
     as_unit(field(x, "abs"), to)
   } else rlang::abort("as_unit() does not work with non-zero em units")
 }

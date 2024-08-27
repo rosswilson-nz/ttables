@@ -60,7 +60,7 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     location = "table",
     bold = NA,
     italic = NA,
-    align = NA_character_,
+    align = NA_alignment_,
     indent = NA_length_,
     size = fontsize,
     stroke = list(NULL)

@@ -36,6 +36,8 @@ as_em_length <- function(x) {
   new_em_length(value)
 }
 #' @export
+vec_cast.character.ttables_em_length <- function(x, to, ...) format(x)
+#' @export
 #' @method vec_arith ttables_em_length
 vec_arith.ttables_em_length <- function(op, x, y, ...) {
   UseMethod("vec_arith.ttables_em_length", y)
