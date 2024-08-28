@@ -1,4 +1,4 @@
-new_table_opts <- function(widths, align, gutter, placement, caption, label, footnotes.order, footnotes.number,
+new_table_opts <- function(widths, align, gutter, placement, caption, label, fontsize, footnotes.order, footnotes.number,
                            footnotes.alphabet, footnotes.symbol, footnotes.direction,
                            supplement, landscape, na) {
   if (missing(widths)) widths <- auto()
@@ -23,6 +23,7 @@ new_table_opts <- function(widths, align, gutter, placement, caption, label, foo
          placement = placement,
          caption = caption,
          label = label,
+         fontsize = fontsize,
          footnotes.order = footnotes.order,
          footnotes.number = footnotes.number,
          footnotes.alphabet = footnotes.alphabet,
@@ -153,7 +154,7 @@ check_na <- function(x) {
   rlang::abort("'na' must be a character scalar")
 }
 
-collate_initial_table_opts <- function(widths, align, gutter, placement, caption, label, ncols) {
+collate_initial_table_opts <- function(widths, align, gutter, placement, caption, label, fontsize, ncols) {
   widths <- check_widths(widths, ncols)
   align <- check_align(align, ncols)
   gutter <- check_gutter(gutter)
@@ -166,7 +167,8 @@ collate_initial_table_opts <- function(widths, align, gutter, placement, caption
                  gutter = gutter,
                  placement = placement,
                  caption = caption,
-                 label = label)
+                 label = label,
+                 fontsize = fontsize)
 }
 
 #' Set Typst table options
@@ -209,6 +211,7 @@ collate_initial_table_opts <- function(widths, align, gutter, placement, caption
 #' @param na Character string to print for `NA` values. Default is `"---"`.
 #'
 #' @returns A Typst table with the specified options set.
+#' @export
 set_table_options <- function(x, align, widths, gutter, placement, caption,
                               label, footnotes.order, footnotes.number,
                               footnotes.alphabet, footnotes.symbol, footnotes.direction,

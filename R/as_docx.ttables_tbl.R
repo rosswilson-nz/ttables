@@ -11,11 +11,11 @@ as_docx.ttables_tbl <- function(x) {
   body <- print_docx_content(x$body, x$opts, x$footnotes)
   footnotes <- print_footnotes_docx(x$footnotes, x$opts)
 
-  body <- format_spans_docx(body, x$opts)
   header <- format_spans_docx(header, x$opts)
+  body <- format_spans_docx(body, x$opts)
 
+  header <- print_cells_docx(header, header = TRUE)
   body <- print_cells_docx(body)
-  header <- print_cells_docx(header)
 
   print_table_docx(tblPr, tblGrid, header, body, footnotes)
 }
@@ -29,8 +29,13 @@ get_docx_table_properties <- function(widths, gutter, caption) {
   CellSpacing <- get_docx_table_spacing(gutter)
   W <- get_docx_table_width(widths)
 
+  Borders <- glue::glue("\n    <w:top {border} />\n    <w:bottom {border} />",
+                        border = "w:val=\"single\" w:sz=\"8\" w:space=\"0\" w:color=\"000000\"",
+                        .trim = FALSE)
+
   glue::glue(
-    "<w:tblPr>{tblLayout}{tblCaption}{tblCellSpacing}{tblW}\n</w:tblPr>",
+    "<w:tblPr>{tblBorders}{tblLayout}{tblCaption}{tblCellSpacing}{tblW}\n</w:tblPr>",
+    tblBorders = glue::glue("\n  <w:tblBorders>{Borders}\n  </w:tblBorders>", .trim = FALSE),
     tblLayout = glue::glue("\n  <w:tblLayout w:type=\"{Layout}\"/>", .trim = FALSE),
     tblCaption = if (!is.null(Caption)) glue::glue("\n  <w:tblCaption w:val=\"{Caption}\"/>", .trim = FALSE),
     tblCellSpacing = glue::glue("\n  <w:tblCellSpacing w:w=\"{CellSpacing}\" w:type=\"dxa\"/>", .trim = FALSE),
@@ -46,24 +51,25 @@ get_docx_table_caption <- function(caption) caption
 get_docx_table_spacing <- function(gutter) if (is.null(gutter) || is_auto(gutter)) 0 else to_dxa(gutter)
 
 get_docx_table_width <- function(widths) {
-  if (identical(widths, "auto") || any(widths == "auto") || identical(widths, "span") || rlang::is_bare_numeric(widths)) {
+  if (any(widths == "auto") || any(substring(widths, nchar(widths) - 1) == "fr")) {
     list(type = "pct", w = "100%")
   } else {
-    list(type = "dxa", w = round(sum(vapply(as_width(widths), to_dxa, numeric(1)))))
+    list(type = "dxa", w = sum(round(vapply(as_width(widths), to_dxa, numeric(1)))))
   }
 }
 
 get_docx_table_grid <- function(widths, nc) {
-  if (identical(widths, "auto")) {
-    widths <- rep(0, nc)
-  } else if (identical(widths, "span")) {
-    widths <- round(rep(5000 / nc, nc))
-  } else if (rlang::is_bare_numeric(widths)) {
-    widths <- round(5000 * widths / sum(widths))
-  } else {
-    widths[widths == "auto"] <- "0em"
-    widths <- round(vapply(as_width(widths), to_dxa, numeric(1)))
+  au <- vapply(widths, is_auto, logical(1))
+  widths[au] <- as_width("0pt")
+
+  fr <- vapply(widths, is_fractional_length, logical(1))
+  if (any(fr)) {
+    excess <- 15 - sum(vapply(widths[!fr], as_cm, numeric(1)))
+    frwidths <- vapply(widths[fr], as.numeric, numeric(1))
+    frwidths <- abs_length(frwidths / sum(frwidths) * excess, "cm")
+    widths[fr] <- as_width(frwidths)
   }
+  widths <- round(vapply(widths, to_dxa, numeric(1)))
   gridContent <- glue::glue("    <w:gridCol w:w=\"{widths}\"/>", .trim = FALSE)
   glue::glue("  <w:tblGrid>\n{content}\n  </w:tblGrid>",
              content = glue::glue_collapse(gridContent, sep = "\n"),
@@ -100,12 +106,29 @@ add_textstyle_docx <- function(out, x, opts) {
 }
 
 add_footnote_refs_docx <- function(out, x, fns, opts) {
-  fns <- get_footnotes(x, fns, opts)
+  fns <- get_footnotes_docx(x, fns, opts)
   if (is.null(fns)) out else glue::glue(
     "{out}{fn}",
     fn = glue::glue("<w:r><w:rPr><w:vertAlign w:val=\"superscript\"/></w:rPr><w:t>{fns}</w:t></w:r>"),
     .null = NULL, .na = opts$na
   )
+}
+
+get_footnotes_docx <- function(x, fns, opts) {
+  fn_num <- if (!is.null(attr(x, "footnote_num"))) {
+    idxs <- fns[fns$type == "number", ]$ref
+    glue::glue_collapse(get_fn_num(idxs[attr(x, "footnote_num")], opts$footnotes.number), sep = ",")
+  }
+  fn_alph <- if (!is.null(attr(x, "footnote_alph"))) {
+    idxs <- fns[fns$type == "alphabet", ]$ref
+    glue::glue_collapse(get_fn_alph(idxs[attr(x, "footnote_alph")], opts$footnotes.alphabet), sep = ",")
+  }
+  fn_sym <- if (!is.null(attr(x, "footnote_sym"))) {
+    idxs <- fns[fns$type == "symbol", ]$ref
+    glue::glue_collapse(get_fn_sym_docx(idxs[attr(x, "footnote_sym")], opts$footnotes.symbol), sep = ",")
+  }
+  fn <- glue::glue(fn_num, fn_alph, fn_sym, .sep = ",", .null = NULL)
+  if (length(fn)) fn else NULL
 }
 
 format_spans_docx <- function(mat, opts) {
@@ -135,19 +158,29 @@ format_spans_docx <- function(mat, opts) {
                                                 glue::glue('<w:r><w:t>{attr(cell, "combine")}</w:t></w:r>'))
       }
       for (rr in r + seq_len(attr(cell, "rowspan") - 1)) {
+        cs <- attr(mat[[rr, c]], "colspan")
         mat[[rr, c]] <- list(NULL)
         attr(mat[[rr, c]], "rowspan") <- -1
+        attr(mat[[rr, c]], "colspan") <- cs # copy original colspan spec for cell sizing
       }
     }
   }
   mat
 }
 
-print_cells_docx <- function(mat) {
-  apply(mat, 1:2, \(x) print_cell_docx(x[[1]]))
+print_cells_docx <- function(mat, header = FALSE) {
+  if (header) {
+    out <- matrix(list(), nrow(mat), ncol(mat))
+    for (r in seq_len(nrow(mat))) for (c in seq_len(ncol(mat))) {
+      out[[r, c]] <- print_cell_docx(mat[[r, c]], r == nrow(mat))
+    }
+    out
+  } else {
+    apply(mat, 1:2, \(x) print_cell_docx(x[[1]]))
+  }
 }
 
-print_cell_docx <- function(x) {
+print_cell_docx <- function(x, last_header = FALSE) {
   if (is.null(x[[1]])) {
     if (is.null(attr(x, "rowspan"))) return(glue::glue())
     x[[1]] <- glue::glue("    <w:p><w:pPr><w:pStyle w:val=\"Compact\" /></w:pPr></w:p>")
@@ -175,12 +208,18 @@ print_cell_docx <- function(x) {
     "        <w:tcBorders>\n{stroke}\n    </w:tcBorders>",
     stroke = format_docx_stroke(attr(x, "stroke")),
     .trim = FALSE
-  )
+  ) else if (last_header) {
+    glue::glue(
+      "        <w:tcBorders>\n{stroke}\n    </w:tcBorders>",
+      stroke = format_docx_stroke(dictionary(list(bottom = stroke("black", "1pt")))),
+      .trim = FALSE
+    )
+  }
   indent <- if (!is.null(attr(x, "indent"))) glue::glue("        <w:left w:w=\"{indent}\" w:type=\"dxa\"/>",
                                                         indent = to_dxa(attr(x, "indent")),
                                                         .trim = FALSE)
   cellstyles <- glue::glue(colspan, rowspan, align, stroke, indent, .sep = "\n", .null = NULL, .trim = FALSE)
-  if (length(cellstyles)) x[[1]] <- glue::glue("      <tcPr>\n{cellstyles}\n      </w:tcPr>\n  {x}",
+  if (length(cellstyles)) x[[1]] <- glue::glue("      <w:tcPr>\n{cellstyles}\n      </w:tcPr>\n  {x}",
                                                .null = NULL, .trim = FALSE)
 
   glue::glue("    <w:tc>\n{x[[1]]}\n    </w:tc>", .trim = FALSE)
@@ -206,7 +245,7 @@ format_docx_stroke.ttables_dictionary <- function(stroke, expand) {
   stroke <- to_list(stroke)
   stroke <- vapply(
     seq_along(stroke),
-    \(i) glue::glue("      <w:{nm} {fmt}>",
+    \(i) glue::glue("      <w:{nm} {fmt} />",
                     nm = to_border_name(names(stroke)[[i]]),
                     fmt = format_docx_stroke(stroke[[i]][[1]], FALSE),
                     .trim = FALSE),
@@ -248,10 +287,26 @@ print_footnotes_docx <- function(df, opts) {
                            "alphabet" ~ get_fn_alph(df$ref, opts$footnotes.alphabet),
                            "symbol" ~ get_fn_sym_docx(df$ref, opts$footnotes.symbol))
 
-  glue::glue("{fn_ref}{content}",
-             content = glue::glue("<w:r><w:t>{df$content}</w:t><:w/r>"),
-             fn_ref = glue::glue("<w:r><w:rPr><w:vertAlign w:val=\"superscript\"/></w:rPr><w:t>{ref}</w:t></w:r><w:r><w:t xml:space=\"preserve\"> </w:t><:w/r>", .na = NULL),
-             .na = "")
+  fn_ref <- glue::glue("<w:t>{ref}</w:t>", .na = NULL)
+  fn_ref_style <- glue::glue("<w:vertAlign w:val=\"superscript\"/>")
+  if (!is.null(opts$fontsize) && !is.na(opts$fontsize)) {
+    fn_ref_style <- glue::glue("<w:sz w:val=\"{size}\"/>{fn_ref_style}",
+                               size = to_dxa(opts$fontsize) / 10)
+    fn_space_style <- glue::glue("<w:rPr><w:sz w:val=\"{size}\"/></w:rPr>",
+                                 size = to_dxa(opts$fontsize) / 10)
+  } else fn_space_style <- NULL
+  fn_space <- glue::glue("<w:r>{fn_space_style}<w:t xml:space=\"preserve\"> </w:t></w:r>",
+                         .null = NULL)
+  fn_ref <- glue::glue("<w:r><w:rPr>{fn_ref_style}></w:rPr>{fn_ref}</w:r>{fn_space}", .na = NULL)
+
+  content <- glue::glue("<w:t>{df$content}</w:t>")
+  if (!is.null(opts$fontsize) && !is.na(opts$fontsize)) {
+    content <- glue::glue("<w:rPr><w:sz w:val=\"{size}\"/></w:rPr>{content}",
+                          size = to_dxa(opts$fontsize) / 10)
+  }
+  content <- glue::glue("<w:r>{content}</w:r>")
+
+  glue::glue("{fn_ref}{content}", .na = "")
 }
 
 get_fn_sym_docx <- function(num, style) {
@@ -277,7 +332,7 @@ print_table_docx <- function(tblPr, tblGrid, header, body, footnotes) {
 ",
     header = glue::glue_collapse(apply(header, 1, \(x) print_header_row_docx(x)), sep = ",\n    "),
     body = glue::glue_collapse(apply(body, 1, \(x) print_row_docx(x)), sep = ",\n    "),
-    footnotes = glue::glue_collapse(footnotes, sep = "\n  <w:br/>\n  "),
+    footnotes = glue::glue_collapse(footnotes, sep = "\n  <w:r><w:t><w:br/></w:t></w:r>\n  "),
     .null = NULL,
     .trim = FALSE
   )
@@ -292,7 +347,8 @@ print_row_docx <- function(row) {
 
 print_header_row_docx <- function(row) {
   drop <- vapply(row, \(x) length(x) == 0, logical(1))
+
   glue::glue("  <w:tr>\n    <w:trPr><w:tblHeader w:val=\"on\" /></w:trPr>\n{content}\n  </w:tr>",
              content = glue::glue_collapse(row[!drop], sep = "\n    "),
-             .trim = FALSE)
+             .null = NULL, .trim = FALSE)
 }

@@ -72,6 +72,7 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
                                         placement = placement,
                                         caption = caption,
                                         label = label,
+                                        fontsize = fontsize,
                                         ncols = ncol(`_body`))
 
   `_footnotes` <- tibble::tibble(

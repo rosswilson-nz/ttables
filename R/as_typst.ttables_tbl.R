@@ -133,7 +133,7 @@ print_table <- function(widths, align, gutter, kind, header, body, footnotes, op
     align: {align}{gutter},
     table.hline(),
     table.header({header}),
-    table.hline(),
+    table.hline(y: {nh - 1}, position: bottom),
     {body},
     table.hline()
   )\n
@@ -141,6 +141,7 @@ print_table <- function(widths, align, gutter, kind, header, body, footnotes, op
   kind: {kind}{caption}{placement}
 ){label}{landscape_tail}
 ",
+    nh = nrow(header),
     gutter = if (length(gutter)) glue::glue(",\n    {gutter}", .trim = FALSE),
     header = glue::glue_collapse(apply(header, 1, \(x) print_row(x)), sep = ",\n    "),
     body = glue::glue_collapse(apply(body, 1, \(x) print_row(x)), sep = ",\n    "),
