@@ -1,6 +1,6 @@
 Package: ttables
 Title: Create Typst Tables in R
-Version: 0.2.1
+Version: 0.3.0
 Authors@R: 
     person("Ross", "Wilson", , "ross.wilson@otago.ac.nz", role = c("aut", "cre"))
 Description: The `ttables` package creates nicely formatted Typst tables from R
@@ -33,7 +33,6 @@ Collate:
     'as_docx.R'
     'as_docx.ttables_tbl.R'
     'as_typst.R'
-    'as_typst.ttables_fig.R'
     'as_typst.ttables_tbl.R'
     'auto.R'
     'cell-locations.R'
@@ -53,10 +52,8 @@ Collate:
     'relative.R'
     'gutter.R'
     'pack_rows.R'
-    'set_figure_options.R'
     'set_table_options.R'
     'stroke.R'
-    'tfig.R'
     'ttab.R'
     'ttables-doc.R'
     'utils.R'

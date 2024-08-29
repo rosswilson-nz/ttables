@@ -45,6 +45,7 @@ is_relative <- function(x) inherits(x, "ttables_relative") || is_length(x) || is
 #' @export
 is.na.ttables_relative <- function(x) vec_detect_missing(x)
 NA_relative_ <- relative(NA_length_, NA_ratio_)
+#' @export
 as_relative <- function(x) vec_cast(x, new_relative())
 #' @export
 vec_ptype_abbr.ttables_relative <- function(x, ...) "rel"

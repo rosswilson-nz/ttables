@@ -1,3 +1,7 @@
+# ttables 0.3.0
+
+* Remove `tfig()` and related functions.
+
 # ttables 0.2.1
 
 * Correct column spans in `add_header()`

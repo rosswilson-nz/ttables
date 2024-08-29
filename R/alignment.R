@@ -62,6 +62,8 @@ format.ttables_vert_alignment <- function(x, ..., justify = "none") {
   out
 }
 #' @export
+as_vert_alignment <- function(x) vec_cast(x, vert_alignment())
+#' @export
 vec_ptype_abbr.ttables_vert_alignment <- function(x, ...) "vlgn"
 #' @export
 vec_ptype_full.ttables_vert_alignment <- function(x, ...) "vert_alignment"
