@@ -5,6 +5,7 @@ convert_units <- function(x, from, to) {
 }
 
 # General conversion function
+#' @export
 as_unit <- function(x, to) {
   UseMethod("as_unit", x)
 }

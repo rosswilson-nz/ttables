@@ -4,6 +4,7 @@ as_docx.ttables_tbl <- function(x) {
 
   kind <- if (x$opts$supplement) "\"suppl-table\"" else "table"
 
+  caption <- print_docx_caption(x$opts$caption)
   tblPr <- get_docx_table_properties(x$opts$widths, x$opts$gutter, x$opts$caption)
   tblGrid <- get_docx_table_grid(x$opts$widths, ncol(x$header))
 
@@ -17,7 +18,18 @@ as_docx.ttables_tbl <- function(x) {
   header <- print_cells_docx(header, header = TRUE)
   body <- print_cells_docx(body)
 
-  print_table_docx(tblPr, tblGrid, header, body, footnotes)
+  print_table_docx(caption, tblPr, tblGrid, header, body, footnotes, x$opts)
+}
+
+print_docx_caption <- function(caption) {
+  if (!is.null(caption)) glue::glue(
+    "
+<w:p>
+  <w:pPr><w:pStyle w:val=\"TableCaption\"/></w:pPr>
+  <w:r><w:t>{caption}</w:t></w:r>
+</w:p>
+    "
+  ) else NULL
 }
 
 get_docx_table_properties <- function(widths, gutter, caption) {
@@ -81,8 +93,10 @@ print_docx_content <- function(mat, opts, fns) {
 }
 
 format_contents_docx <- function(x, opts, fns) {
+  text <- escape_html(x[[1]])
+
   out <- glue::glue("      <w:t>{text}</w:t>",
-                    text = x[[1]], .na = opts$na, .trim = FALSE)
+                    .na = opts$na, .trim = FALSE)
   out <- add_textstyle_docx(out, x, opts)
   out <- add_footnote_refs_docx(out, x, fns, opts)
   #out <- add_indents_docx(out, x, opts)
@@ -90,18 +104,38 @@ format_contents_docx <- function(x, opts, fns) {
   out
 }
 
+escape_html <- function(x) {
+  pattern <- "[<>&'\"]"
+  text <- enc2utf8(as.character(x))
+  if (!any(grepl(pattern, text, useBytes = TRUE))) return(text)
+  specials <- list("&" = "&amp;",
+                   "<" = "&lt;",
+                   ">" = "&gt;",
+                   "'" = "&#039;",
+                   "\"" = "&quot;")
+  for (chr in names(specials)) {
+    text <- gsub(chr, specials[[chr]], text, fixed = TRUE,
+                 useBytes = TRUE)
+  }
+  Encoding(text) <- "UTF-8"
+  return(text)
+}
+
 add_textstyle_docx <- function(out, x, opts) {
   bold <- if (!is.null(attr(x, "bold"))) glue::glue("            <w:b w:val=\"{bold}\"/>",
                                                     bold = if (attr(x, "bold")) "true" else "false",
                                                     .trim = FALSE)
-  italic <- if (!is.null(attr(x, "italic"))) glue::glue("            <w:i w:val\"{italic}\"/>",
-                                                        italic = if (attr(x, "italic")) "true" else "false",
-                                                        .trim = FALSE)
+  italic <- if (!is.null(attr(x, "italic"))) glue::glue(
+    "            <w:i w:val=\"{italic}\"/>",
+    italic = if (attr(x, "italic")) "true" else "false",
+    .trim = FALSE
+  )
   size <- if (!is.null(attr(x, "size"))) glue::glue("            <w:sz w:val=\"{size}\"/>",
                                                     size = to_dxa(attr(x, 'size')) / 10,
                                                     .trim = FALSE)
   styles <- glue::glue(bold, italic, size, .sep = "\n", .null = NULL, .trim = FALSE)
-  styles <- if (length(styles)) glue::glue("\n          <w:rPr>", styles, "          </w:rPr>", .sep = "\n", .trim = FALSE)
+  styles <- if (length(styles)) glue::glue("\n          <w:rPr>", styles, "          </w:rPr>",
+                                           .sep = "\n", .trim = FALSE)
   glue::glue("    <w:r>{styles}\n    {out}\n        </w:r>", .trim = FALSE, .null = NULL)
 }
 
@@ -306,7 +340,7 @@ print_footnotes_docx <- function(df, opts) {
   }
   content <- glue::glue("<w:r>{content}</w:r>")
 
-  glue::glue("{fn_ref}{content}", .na = "")
+  glue::glue("<w:p>\n  <w:pPr><w:pStyle w:val=\"BlockText\" /></w:pPr>{fn_ref}{content}\n</w:p>", .na = "")
 }
 
 get_fn_sym_docx <- function(num, style) {
@@ -317,24 +351,32 @@ get_fn_sym_docx <- function(num, style) {
 syms_standard_docx <- c("*", "†", "‡", "§")
 syms_extended_docx <- c(syms_standard_docx, "‖", "¶")
 
-print_table_docx <- function(tblPr, tblGrid, header, body, footnotes) {
+print_table_docx <- function(caption, tblPr, tblGrid, header, body, footnotes, opts) {
+  landscape_head <- "  <w:p><w:pPr><w:sectPr/></w:pPr></w:p>\n"
+  landscape_tail <- "
+  <w:p><w:pPr><w:sectPr>
+    <w:pgSz w:w=\"16838\" w:h=\"11906\" w:orient=\"landscape\"/>
+  </w:sectPr></w:pPr></w:p>
+"
+
   glue::glue(
     "
+{landscape_head}
+{caption}
 <w:tbl>
   {tblPr}
   {tblGrid}
   {header}
   {body}
 </w:tbl>
-<w:p>
-  {footnotes}
-</w:p>
+{footnotes}{landscape_tail}
 ",
     header = glue::glue_collapse(apply(header, 1, \(x) print_header_row_docx(x)), sep = ",\n    "),
     body = glue::glue_collapse(apply(body, 1, \(x) print_row_docx(x)), sep = ",\n    "),
-    footnotes = glue::glue_collapse(footnotes, sep = "\n  <w:r><w:t><w:br/></w:t></w:r>\n  "),
-    .null = NULL,
-    .trim = FALSE
+    footnotes = glue::glue_collapse(footnotes, sep = "\n  "),
+    landscape_head = if (opts$landscape) landscape_head,
+    landscape_tail = if (opts$landscape) landscape_tail,
+    .null = NULL, .trim = FALSE
   )
 }
 

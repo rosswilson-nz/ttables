@@ -20,6 +20,16 @@ vec_ptype_abbr.ttables_ratio <- function(x, ...) "rtio"
 #' @export
 vec_ptype_full.ttables_ratio <- function(x, ...) "ratio"
 #' @export
+vec_ptype2.ttables_ratio.ttables_ratio <- function(x, y, ...) new_ratioh()
+#' @export
+vec_ptype2.ttables_ratio.character <- function(x, y, ...) character()
+#' @export
+vec_ptype2.character.ttables_ratio <- function(x, y, ...) character()
+#' @export
+vec_ptype2.ttables_ratio.numeric <- function(x, y, ...) numeric()
+#' @export
+vec_ptype2.numeric.ttables_ratio <- function(x, y, ...) numeric()
+#' @export
 vec_cast.ttables_ratio.double <- function(x, to, ...) ratio(x)
 #' @export
 vec_cast.double.ttables_ratio <- function(x, to, ...) vec_data(x)

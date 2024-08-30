@@ -7,7 +7,7 @@
 as_typst(x)
 }
 \arguments{
-\item{x}{A Typst table or figure (\code{ttables_tbl} or \code{ttables_fig})}
+\item{x}{A Typst table (class \code{ttables_tbl})}
 }
 \value{
 A \code{glue} string containing the raw Typst output.

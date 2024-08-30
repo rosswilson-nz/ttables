@@ -40,6 +40,7 @@ is_length <- function(x) inherits(x, c("ttables_length", "ttables_abs_length", "
 #' @export
 is.na.ttables_length <- function(x) vec_detect_missing(x)
 NA_length_ <- ttables_length(NA_abs_length_, NA_em_length_)
+#' @export
 as_length <- function(x) vec_cast(x, new_length())
 #' @export
 vec_ptype_abbr.ttables_length <- function(x, ...) "len"
