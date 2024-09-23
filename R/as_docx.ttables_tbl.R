@@ -63,11 +63,12 @@ get_docx_table_caption <- function(caption) caption
 get_docx_table_spacing <- function(gutter) if (is.null(gutter) || is_auto(gutter)) 0 else to_dxa(gutter)
 
 get_docx_table_width <- function(widths) {
-  if (any(widths == "auto") || any(substring(widths, nchar(widths) - 1) == "fr")) {
-    list(type = "pct", w = "100%")
+  w <- if (any(widths == "auto") || any(substring(widths, nchar(widths) - 1) == "fr")) {
+    9070
   } else {
-    list(type = "dxa", w = sum(round(vapply(as_width(widths), to_dxa, numeric(1)))))
+    sum(round(vapply(as_width(widths), to_dxa, numeric(1))))
   }
+  list(type = "dxa", w = w)
 }
 
 get_docx_table_grid <- function(widths, nc) {
@@ -76,7 +77,7 @@ get_docx_table_grid <- function(widths, nc) {
 
   fr <- vapply(widths, is_fractional_length, logical(1))
   if (any(fr)) {
-    excess <- 15 - sum(vapply(widths[!fr], as_cm, numeric(1)))
+    excess <- 16 - sum(vapply(widths[!fr], as_cm, numeric(1)))
     frwidths <- vapply(widths[fr], as.numeric, numeric(1))
     frwidths <- abs_length(frwidths / sum(frwidths) * excess, "cm")
     widths[fr] <- as_width(frwidths)
