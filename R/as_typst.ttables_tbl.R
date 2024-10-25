@@ -145,7 +145,7 @@ print_table <- function(widths, align, gutter, kind, header, body, footnotes, op
     gutter = if (length(gutter)) glue::glue(",\n    {gutter}", .trim = FALSE),
     header = glue::glue_collapse(apply(header, 1, \(x) print_row(x)), sep = ",\n    "),
     body = glue::glue_collapse(apply(body, 1, \(x) print_row(x)), sep = ",\n    "),
-    footnotes = glue::glue_collapse(footnotes, sep = "\n\n  "),
+    footnotes = if (length(footnotes)) glue::glue_collapse(footnotes, sep = "\n\n  "),
     caption = if (length(opts$caption)) glue::glue(",\ncaption: figure.caption(position: top)[{opts$caption}]"),
     placement = if (length(opts$caption)) glue::glue(",\nplacement: {opts$placement}"),
     label = if (length(opts$label)) glue::glue(" <{opts$label}>"),
