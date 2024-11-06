@@ -1,3 +1,7 @@
+# ttables 0.4.0
+
+* Add `fill` argument to apply cell fill colour
+
 # ttables 0.3.0
 
 * Remove `tfig()` and related functions.

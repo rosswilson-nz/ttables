@@ -12,7 +12,8 @@ format_cells(
   align = NULL,
   indent = NULL,
   size = NULL,
-  stroke = NULL
+  stroke = NULL,
+  fill = NULL
 )
 }
 \arguments{
@@ -39,6 +40,10 @@ A numeric \code{size} will be taken as points.}
 \href{https://typst.app/docs/reference/visualize/stroke/}{stroke}
 specification. Only the paint and thickness components are supported for
 now.}
+
+\item{fill}{Cell fill colour. Should be Typst
+\href{https://typst.app/docs/reference/visualize/color/}{color}
+specification.}
 }
 \value{
 A Typst table with formatting specification applied to the given

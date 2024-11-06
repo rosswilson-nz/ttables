@@ -33,6 +33,7 @@ extract_contents <- function(df, formats, layout, footnotes, location) {
     if (!is.na(f$indent)) for (row in rows) for (cell in columns) attr(out[[row, cell]], "indent") <- f$indent
     if (!is.na(f$size)) for (row in rows) for (cell in columns) attr(out[[row, cell]], "size") <- f$size
     if (!is.null(f$stroke[[1]])) for (row in rows) for (cell in columns) attr(out[[row, cell]], "stroke") <- f$stroke[[1]]
+    if (!is.na(f$fill)) for (row in rows) for (cell in columns) attr(out[[row, cell]], "fill") <- f$fill
   }
   f_header <- formats[formats$location == location, ]
   for (r in seq_len(nrow(f_header))) {
@@ -43,6 +44,7 @@ extract_contents <- function(df, formats, layout, footnotes, location) {
     if (!is.na(f$indent)) attr(out[[f$row, f$column]], "indent") <- f$indent
     if (!is.na(f$size)) attr(out[[f$row, f$column]], "size") <- f$size
     if (!is.null(f$stroke[[1]])) attr(out[[f$row, f$column]], "stroke") <- f$stroke[[1]]
+    if (!is.na(f$fill)) attr(out[[f$row, f$column]], "fill") <- f$fill
   }
   l <-layout[layout$location == location, ]
   for (r in seq_len(nrow(l))) {

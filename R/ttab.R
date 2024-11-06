@@ -63,7 +63,8 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     align = NA_alignment_,
     indent = NA_length_,
     size = fontsize,
-    stroke = list(NULL)
+    stroke = list(NULL),
+    fill = NA_colour_
   )
 
   `_opts` <- collate_initial_table_opts(widths = widths,

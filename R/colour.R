@@ -20,6 +20,9 @@ colour <- function(x = character()) {
 is_colour <- function(x) inherits(x, "ttables_colour")
 NA_colour_ <- new_colour(NA_character_)
 #' @export
+is.na.ttables_colour <- function(x) vec_detect_missing(x)
+as_colour <- function(x) vec_cast(x, colour())
+#' @export
 format.ttables_colour <- function(x, ..., justify = "none") {
   out <- format(vec_data(x), justify = justify)
   out[is.na(x)] <- NA

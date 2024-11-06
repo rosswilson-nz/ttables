@@ -118,7 +118,9 @@ print_cell <- function(x) {
                                                       align = attr(x, "align"))
   stroke <- if (!is.null(attr(x, "stroke"))) glue::glue("stroke: {stroke}",
                                                         stroke = format(attr(x, "stroke")))
-  cellstyles <- glue::glue(colspan, rowspan, align, stroke, .sep = ", ", .null = NULL)
+  fill <- if (!is.null(attr(x, "fill"))) glue::glue("fill: {fill}",
+                                                    fill = format(attr(x, "fill")))
+  cellstyles <- glue::glue(colspan, rowspan, align, stroke, fill, .sep = ", ", .null = NULL)
   if (length(cellstyles)) x <- glue::glue("#table.cell({cellstyles})[{x}]", .null = NULL)
 
   glue::glue("[{x}]")
@@ -227,7 +229,7 @@ add_textstyle <- function(out, x, opts) {
                                                .null = NULL, .na = opts$na)
 }
 
-restore_attributes <- function(out, x, attrs = c("colspan", "rowspan", "combine", "align", "stroke")) {
+restore_attributes <- function(out, x, attrs = c("colspan", "rowspan", "combine", "align", "stroke", "fill")) {
   out <- list(out)
   for (a in attrs) attr(out, a) <- attr(x, a)
   out
