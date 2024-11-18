@@ -17,13 +17,16 @@
 #'     [stroke](https://typst.app/docs/reference/visualize/stroke/)
 #'     specification. Only the paint and thickness components are supported for
 #'     now.
+#' @param fill Cell fill colour. Should be Typst
+#'     [color](https://typst.app/docs/reference/visualize/color/)
+#'     specification.
 #'
 #' @returns A Typst table with formatting specification applied to the given
 #'     cell(s).
 #'
 #' @export
 format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL,
-                         size = NULL, stroke = NULL) {
+                         size = NULL, stroke = NULL, fill = NULL) {
   if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
   location <- expand_location(resolve_location(location, x))
 
@@ -33,12 +36,14 @@ format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, 
   if (!is.null(indent)) indent <- check_indent(indent)
   if (!is.null(size)) size <- check_size(size)
   if (!is.null(stroke)) stroke <- check_stroke(stroke)
+  if (!is.null(fill)) fill <- check_fill(fill)
 
   format <- tibble::tibble(location, bold = bold %||% NA, italic = italic %||% NA,
                            align = align %||% NA_alignment_,
                            indent = indent %||% NA_length_,
                            size = size %||% NA_length_,
-                           stroke = stroke %||% list(NULL))
+                           stroke = stroke %||% list(NULL),
+                           fill = fill %||% NA_colour_)
   x$`_format` <- merge_formats(x$`_format`, format)
   x
 }
@@ -72,6 +77,18 @@ check_stroke <- function(x, list_ok = TRUE) {
   }
 }
 
+check_fill <- function(x) {
+  if (rlang::is_scalar_character(x)) {
+    switch(x,
+           none = none(),
+           vec_cast(x, colour()))
+  } else {
+    x <- as_colour(x)
+    if (length(x) != 1) rlang::abort("'x' must be a scalar colour specification")
+    x
+  }
+}
+
 merge_formats <- function(old, new) {
   out <- dplyr::full_join(old, new, by = c("column", "row", "location"))
   out$bold <- dplyr::coalesce(out$bold.y, out$bold.x)
@@ -86,6 +103,8 @@ merge_formats <- function(old, new) {
   out$size.x <- out$size.y <- NULL
   out$stroke <- dplyr::coalesce(out$stroke.y, out$stroke.x)
   out$stroke.x <- out$stroke.y <- NULL
+  out$fill <- dplyr::coalesce(out$fill.y, out$fill.x)
+  out$fill.x <- out$fill.y <- NULL
   out
 }
 
