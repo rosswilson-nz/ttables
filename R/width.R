@@ -9,7 +9,7 @@ width <- function(x = list()) {
 }
 is_width <- function(x) inherits(x, "width")
 is_track_size <- function(x) {
-  length(x) == 1 && (is_length(x) || is_auto(x) || is_fractional_length(x))
+  length(x) == 1 && (is_length(x) || is_auto(x) || is_fractional_length(x) || is_relative(x))
 }
 #' @export
 format.ttables_width <- function(x, ...) {
@@ -42,5 +42,5 @@ extract_track_size <- function(x) {
   if (x == "auto") return(auto())
   n <- nchar(x)
   if (substr(x, n - 1, n) == "fr") return(as_fractional_length(x))
-  as_length(x)
+  as_relative(x)
 }
