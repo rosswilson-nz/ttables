@@ -2,6 +2,8 @@
 
 * Add `fill` argument to apply cell fill colour
 
+* Allow relative widths (i.e. percentages) in table specification
+
 # ttables 0.3.0
 
 * Remove `tfig()` and related functions.
