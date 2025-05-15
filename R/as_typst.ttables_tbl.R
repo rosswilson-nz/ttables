@@ -5,7 +5,6 @@ as_typst.ttables_tbl <- function(x) {
   widths <- print_widths(x$opts$widths, ncol(x$header))
   align <- print_align(x$opts$align, ncol(x$header))
   gutter <- print_gutter(x$opts$gutter)
-  kind <- if (x$opts$supplement) "\"suppl-table\"" else "table"
 
   header <- print_typst_content(x$header, x$opts, x$footnotes)
   body <- print_typst_content(x$body, x$opts, x$footnotes)
@@ -17,7 +16,7 @@ as_typst.ttables_tbl <- function(x) {
   header <- print_cells(header)
   body <- print_cells(body)
 
-  print_table(widths, align, gutter, kind, header, body, footnotes, x$opts)
+  print_table(widths, align, gutter, kind, header, body, footnotes)
 }
 
 print_widths <- function(widths, nc) {
@@ -126,33 +125,24 @@ print_cell <- function(x) {
   glue::glue("[{x}]")
 }
 
-print_table <- function(widths, align, gutter, kind, header, body, footnotes, opts) {
+print_table <- function(widths, align, gutter, kind, header, body, footnotes) {
   glue::glue(
-    "
-{landscape_head}#figure(
-  [#table(
-    columns: {widths},
-    align: {align}{gutter},
-    table.hline(),
-    table.header({header}),
-    table.hline(y: {nh - 1}, position: bottom),
-    {body},
-    table.hline()
-  )\n
-  {footnotes}],
-  kind: {kind}{caption}{placement}
-){label}{landscape_tail}
+    "#table(
+  columns: {widths},
+  align: {align}{gutter},
+  table.hline(),
+  table.header({header}),
+  table.hline(y: {nh - 1}, position: bottom),
+  {body},
+  table.hline()
+)\n
+{footnotes}
 ",
     nh = nrow(header),
     gutter = if (length(gutter)) glue::glue(",\n    {gutter}", .trim = FALSE),
     header = glue::glue_collapse(apply(header, 1, \(x) print_row(x)), sep = ",\n    "),
     body = glue::glue_collapse(apply(body, 1, \(x) print_row(x)), sep = ",\n    "),
     footnotes = if (length(footnotes)) glue::glue_collapse(footnotes, sep = "\n\n  "),
-    caption = if (length(opts$caption)) glue::glue(",\ncaption: figure.caption(position: top)[{opts$caption}]"),
-    placement = if (length(opts$caption)) glue::glue(",\nplacement: {opts$placement}"),
-    label = if (length(opts$label)) glue::glue(" <{opts$label}>"),
-    landscape_head = if (opts$landscape) glue::glue("#page(flipped: true)[\n"),
-    landscape_tail = if (opts$landscape) glue::glue("]"),
     .null = NULL,
     .trim = FALSE
   )
