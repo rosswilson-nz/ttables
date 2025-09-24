@@ -22,9 +22,9 @@ The goal of ttables is to make it easy to create nicely formatted Typst tables u
 
 ## Installation
 
-You can install the development version of ttables from [GitHub](https://github.com/) with:
+You can install the development version of **`ttables`** from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("uo-cmor/ttables")
+# install.packages("pak")
+pak::pak("rosswilson-nz/ttables")
 ```

@@ -1,6 +1,6 @@
 Package: ttables
 Title: Create Typst Tables in R
-Version: 0.4.0
+Version: 1.0.0
 Authors@R: 
     person("Ross", "Wilson", , "ross.wilson@otago.ac.nz", role = c("aut", "cre"))
 Description: The `ttables` package creates nicely formatted Typst tables from R
@@ -9,8 +9,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-URL: https://github.com/uo-cmor/ttables
-BugReports: https://github.com/uo-cmor/ttables/issues
+URL: https://github.com/rosswilson-nz/ttables
+BugReports: https://github.com/rosswilson-nz/ttables/issues
 Imports: 
     cli,
     dplyr,
