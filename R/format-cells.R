@@ -68,7 +68,7 @@ check_stroke <- function(x, list_ok = TRUE) {
            none = list(none()),
            list(vec_cast(x, stroke())))
   } else if (list_ok && rlang::is_bare_list(x)) {
-    if (!all(names(x) %in% c("left", "right", "top", "bottom"))) rlang::abort("Invalid item names in 'x'")
+    if (!all(names(x) %in% c("left", "right", "top", "bottom", "x", "y", "rest"))) rlang::abort("Invalid item names in 'x'")
     list(dictionary(lapply(x, \(y) check_stroke(y, FALSE))))
   } else {
     x <- as_stroke(x)
