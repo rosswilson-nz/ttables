@@ -72,7 +72,7 @@ print_footnotes <- function(df, opts, nc) {
     )
     footnote_text <- glue::glue_collapse(footnotes, sep = "\n\n    ")
     glue::glue(
-      "table.cell(colspan: {nc}, text(size: 0.8em)[
+      "table.cell(colspan: {nc}, text(size: {opts$footnotes.size})[
         {footnote_text}
     ])"
     )

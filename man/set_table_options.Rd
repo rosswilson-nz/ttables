@@ -17,6 +17,7 @@ set_table_options(
   footnotes.alphabet,
   footnotes.symbol,
   footnotes.direction,
+  footnotes.size,
   supplement,
   landscape,
   na
@@ -63,6 +64,9 @@ of \code{c("lower", "upper")}. Default is \code{"lower"}.}
 \item{footnotes.direction}{The table direction in which footnote numbering is
 accumulated. Either \code{"horizontal"} or \code{"vertical"}. Default is
 \code{"horizontal"}.}
+
+\item{footnotes.size}{The fontsize for footnotes. Should be a valid Typst
+length specification. Default is \code{"0.9em"}.}
 
 \item{supplement}{Whether the table is to be placed in supplementary material
 in the output. This only changes the Typst 'kind' parameter to
