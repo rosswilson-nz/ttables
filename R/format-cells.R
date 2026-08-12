@@ -25,54 +25,100 @@
 #'     cell(s).
 #'
 #' @export
-format_cells <- function(x, location, bold = NULL, italic = NULL, align = NULL, indent = NULL,
-                         size = NULL, stroke = NULL, fill = NULL) {
-  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
+format_cells <- function(
+  x,
+  location,
+  bold = NULL,
+  italic = NULL,
+  align = NULL,
+  indent = NULL,
+  size = NULL,
+  stroke = NULL,
+  fill = NULL
+) {
+  if (!inherits(x, "ttables_tbl")) {
+    stop("'x' must be a `ttables_tbl` object")
+  }
   location <- expand_location(resolve_location(location, x))
 
-  if (!is.null(bold) && !(is.logical(bold) && length(bold) == 1)) stop("'bold' must be a logical scalar")
-  if (!is.null(italic) && !(is.logical(italic) && length(italic) == 1)) stop("'italic' must be a logical scalar")
-  if (!is.null(align)) align <- check_align(align, 1)
-  if (!is.null(indent)) indent <- check_indent(indent)
-  if (!is.null(size)) size <- check_size(size)
-  if (!is.null(stroke)) stroke <- check_stroke(stroke)
-  if (!is.null(fill)) fill <- check_fill(fill)
+  if (!is.null(bold) && !(is.logical(bold) && length(bold) == 1)) {
+    stop("'bold' must be a logical scalar")
+  }
+  if (!is.null(italic) && !(is.logical(italic) && length(italic) == 1)) {
+    stop("'italic' must be a logical scalar")
+  }
+  if (!is.null(align)) {
+    align <- check_align(align, 1)
+  }
+  if (!is.null(indent)) {
+    indent <- check_indent(indent)
+  }
+  if (!is.null(size)) {
+    size <- check_size(size)
+  }
+  if (!is.null(stroke)) {
+    stroke <- check_stroke(stroke)
+  } else {
+    stroke <- list(stroke)
+  }
+  if (!is.null(fill)) {
+    fill <- check_fill(fill)
+  }
 
-  format <- tibble::tibble(location, bold = bold %||% NA, italic = italic %||% NA,
-                           align = align %||% NA_alignment_,
-                           indent = indent %||% NA_length_,
-                           size = size %||% NA_length_,
-                           stroke = stroke %||% list(NULL),
-                           fill = fill %||% NA_colour_)
+  format <- vctrs::data_frame(
+    location,
+    bold = bold %||% NA,
+    italic = italic %||% NA,
+    align = align %||% NA_alignment_,
+    indent = indent %||% NA_length_,
+    size = size %||% NA_length_,
+    stroke = stroke %||% list(NULL),
+    fill = fill %||% NA_colour_
+  )
   x$`_format` <- merge_formats(x$`_format`, format)
   x
 }
 
 check_indent <- function(x) {
-  if (rlang::is_bare_numeric(x)) x <- paste0(x, "em")
+  if (rlang::is_bare_numeric(x)) {
+    x <- paste0(x, "em")
+  }
   x <- as_length(x)
-  if (length(x) != 1) rlang::abort("'x' must be a scalar length")
+  if (length(x) != 1) {
+    rlang::abort("'x' must be a scalar length")
+  }
   x
 }
 
 check_size <- function(x) {
-  if (rlang::is_bare_numeric(x)) x <- paste0(x, "pt")
+  if (rlang::is_bare_numeric(x)) {
+    x <- paste0(x, "pt")
+  }
   x <- as_length(x)
-  if (length(x) != 1) rlang::abort("'x' must be a scalar length")
+  if (length(x) != 1) {
+    rlang::abort("'x' must be a scalar length")
+  }
   x
 }
 
 check_stroke <- function(x, list_ok = TRUE) {
   if (rlang::is_scalar_character(x)) {
     switch(x,
-           none = list(none()),
-           list(vec_cast(x, stroke())))
+      none = list(none()),
+      list(vec_cast(x, stroke()))
+    )
   } else if (list_ok && rlang::is_bare_list(x)) {
-    if (!all(names(x) %in% c("left", "right", "top", "bottom", "x", "y", "rest"))) rlang::abort("Invalid item names in 'x'")
+    if (
+      !all(names(x) %in% c("left", "right", "top", "bottom", "x", "y", "rest"))
+    ) {
+      rlang::abort("Invalid item names in 'x'")
+    }
     list(dictionary(lapply(x, \(y) check_stroke(y, FALSE))))
   } else {
     x <- as_stroke(x)
-    if (length(x) != 1) rlang::abort("'x' must be a scalar stroke specification")
+    if (length(x) != 1) {
+      rlang::abort("'x' must be a scalar stroke specification")
+    }
     list(x)
   }
 }
@@ -80,32 +126,37 @@ check_stroke <- function(x, list_ok = TRUE) {
 check_fill <- function(x) {
   if (rlang::is_scalar_character(x)) {
     switch(x,
-           none = none(),
-           vec_cast(x, colour()))
+      none = none(),
+      vec_cast(x, colour())
+    )
   } else {
     x <- as_colour(x)
-    if (length(x) != 1) rlang::abort("'x' must be a scalar colour specification")
+    if (length(x) != 1) {
+      rlang::abort("'x' must be a scalar colour specification")
+    }
     x
   }
 }
 
 merge_formats <- function(old, new) {
-  out <- dplyr::full_join(old, new, by = c("column", "row", "location"))
-  out$bold <- dplyr::coalesce(out$bold.y, out$bold.x)
-  out$bold.x <- out$bold.y <- NULL
-  out$italic <- dplyr::coalesce(out$italic.y, out$italic.x)
-  out$italic.x <- out$italic.y <- NULL
-  out$align <- dplyr::coalesce(out$align.y, out$align.x)
-  out$align.x <- out$align.y <- NULL
-  out$indent <- dplyr::coalesce(out$indent.y, out$indent.x)
-  out$indent.x <- out$indent.y <- NULL
-  out$size <- dplyr::coalesce(out$size.y, out$size.x)
-  out$size.x <- out$size.y <- NULL
-  out$stroke <- dplyr::coalesce(out$stroke.y, out$stroke.x)
-  out$stroke.x <- out$stroke.y <- NULL
-  out$fill <- dplyr::coalesce(out$fill.y, out$fill.x)
-  out$fill.x <- out$fill.y <- NULL
-  out
+  out <- as.list(old)
+  for (i in seq_len(nrow(new))) {
+    r <- which(
+      old$column == new$column[[i]] &
+        old$row == new$row[[i]] &
+        old$location == new$location[[i]]
+    )
+    if (length(r)) {
+      for (c in seq_len(length(out))) {
+        if (!is.na(new[[c]][i])) out[[c]][r] <- new[[c]][i]
+      }
+    } else {
+      for (c in seq_len(length(out))) {
+        out[[c]] <- c(out[[c]], new[[c]][i])
+      }
+    }
+  }
+  vctrs::new_data_frame(out)
 }
 
 #' Add indentation to Typst table cells
@@ -120,17 +171,47 @@ merge_formats <- function(old, new) {
 #' @returns A Typst table with indentation added to the specified cells.
 #' @export
 add_indent <- function(x, location, amount = "1em") {
-  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
+  if (!inherits(x, "ttables_tbl")) {
+    stop("'x' must be a `ttables_tbl` object")
+  }
   location <- expand_location(resolve_location(location, x))
-  if (is.numeric(amount)) amount <- paste0(amount, "em")
+  if (is.numeric(amount)) {
+    amount <- paste0(amount, "em")
+  }
   indent <- as_length(amount)
-  if (length(indent) != 1) rlang::abort("'indent' must be a scalar length")
-  format <- tibble::tibble(location, indent = indent)
-  format <- dplyr::full_join(x$`_format`, format, by = c("column", "row", "location"))
-  indent.x <- tidyr::replace_na(format$indent.x, ttables_length(abs_length(0), em_length(0)))
-  indent.y <- tidyr::replace_na(format$indent.y, ttables_length(abs_length(0), em_length(0)))
-  format$indent <- vec_arith.ttables_length.ttables_length("+", indent.x, indent.y)
-  format$indent.x <- format$indent.y <- NULL
-  x$`_format` <- format
+  if (length(indent) != 1) {
+    rlang::abort("'indent' must be a scalar length")
+  }
+  format <- as.list(x$`_format`)
+  for (i in seq_len(nrow(location))) {
+    r <- which(
+      format$column == location$column[[i]] &
+        format$row == location$row[[i]] &
+        format$location == location$location[[i]]
+    )
+    if (length(r)) {
+      if (is.na(format$indent[[r]])) {
+        format$indent[[r]] <- indent
+      } else {
+        format$indent[[r]] <- vec_arith.ttables_length.ttables_length(
+          "+",
+          format$indent[[r]],
+          indent
+        )
+      }
+    } else {
+      format$column <- c(format$column, location$column[[i]])
+      format$row <- c(format$row, location$row[[i]])
+      format$location <- c(format$location, location$location[[i]])
+      format$indent <- c(format$indent, indent)
+      format$bold <- c(format$bold, NA)
+      format$italic <- c(format$italic, NA)
+      format$align <- c(format$align, NA_alignment_)
+      format$size <- c(format$size, NA_length_)
+      format$stroke <- c(format$stroke, list(NULL))
+      format$fill <- c(format$fill, NA_colour_)
+    }
+  }
+  x$`_format` <- vctrs::new_data_frame(format)
   x
 }

@@ -3,8 +3,18 @@ df$mpg[[4]] <- NA # to test NA printing
 
 # To be moved into separate test files later
 x0 <- ttab(
-  df, caption = "Motor Trend Car Road Tests", label = "tab:mtcars", rownames = "model",
-  colnames = c("Model", "MPG", "Cylinders", "Displacement", "HP", "Rear axle ratio"),
+  df,
+  caption = "Motor Trend Car Road Tests",
+  label = "tab:mtcars",
+  rownames = "model",
+  colnames = c(
+    "Model",
+    "MPG",
+    "Cylinders",
+    "Displacement",
+    "HP",
+    "Rear axle ratio"
+  ),
   align = c("left", "center", "centre", rep("right", 3)),
   widths = paste0(c(30, rep(12, 5)), "mm"),
   gutter = list(column = "2pt", row = "1pt"),
@@ -30,4 +40,11 @@ x4 <- x3 %>%
   pack_rows(4, 2, "Hornet", indent = "10pt")
 
 x5 <- x4 %>%
-  format_cells(cells(c(model, disp), disp < 150), bold = TRUE, align = "centre", size = "12pt", stroke = list(bottom = "1pt + red"), fill = "lime")
+  format_cells(
+    cells(c(model, disp), disp < 150),
+    bold = TRUE,
+    align = "centre",
+    size = "12pt",
+    stroke = list(bottom = "1pt + red"),
+    fill = "lime"
+  )

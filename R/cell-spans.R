@@ -16,8 +16,12 @@
 span <- function(x, start, size, combine = NA_character_) {
   start <- expand_location(resolve_location(start, x))
 
-  new_span <- tibble::tibble(start, size = list(size), combine = as.character(combine))
-  x$`_layout` <- tibble::add_row(x$`_layout`, new_span)
+  new_span <- vctrs::data_frame(
+    start,
+    size = list(size),
+    combine = as.character(combine)
+  )
+  x$`_layout` <- rbind(x$`_layout`, new_span)
   x
 }
 

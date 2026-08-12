@@ -1,5 +1,7 @@
 new_ratio <- function(x = double()) {
-  if (!rlang::is_double(x)) rlang::abort("'x' must be a double vector.")
+  if (!rlang::is_double(x)) {
+    rlang::abort("'x' must be a double vector.")
+  }
   new_vctr(x, class = "ttables_ratio")
 }
 ratio <- function(x = double()) {
@@ -20,7 +22,7 @@ vec_ptype_abbr.ttables_ratio <- function(x, ...) "rtio"
 #' @export
 vec_ptype_full.ttables_ratio <- function(x, ...) "ratio"
 #' @export
-vec_ptype2.ttables_ratio.ttables_ratio <- function(x, y, ...) new_ratioh()
+vec_ptype2.ttables_ratio.ttables_ratio <- function(x, y, ...) new_ratio()
 #' @export
 vec_ptype2.ttables_ratio.character <- function(x, y, ...) character()
 #' @export
@@ -37,9 +39,11 @@ vec_cast.double.ttables_ratio <- function(x, to, ...) vec_data(x)
 vec_cast.ttables_ratio.character <- function(x, to, ...) {
   n <- nchar(x)
   unit <- substr(x, n, n)
-  if (!all(unit == "%" | is.na(x))) rlang::abort("Invalid ratio")
+  if (!all(unit == "%" | is.na(x))) {
+    rlang::abort("Invalid ratio")
+  }
   value <- gsub("%$", "", x)
-  #value <- rlang::try_fetch(as.numeric(value), warning = \(w) rlang::abort("Invalid relative length", parent = w))
+  # value <- rlang::try_fetch(as.numeric(value), warning = \(w) rlang::abort("Invalid relative length", parent = w))
   value <- gsub("[[:blank:]]", "", value)
   value <- as.numeric(value)
   new_ratio(value)
@@ -60,8 +64,7 @@ vec_arith.ttables_ratio.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_ratio ttables_ratio
 vec_arith.ttables_ratio.ttables_ratio <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "+" = ,
     "-" = new_ratio(vec_arith_base(op, x, y)),
     "/" = vec_arith_base(op, x, y),
@@ -71,8 +74,7 @@ vec_arith.ttables_ratio.ttables_ratio <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_ratio numeric
 vec_arith.ttables_ratio.numeric <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "/" = ,
     "*" = new_ratio(vec_arith_base(op, x, y)),
     stop_incompatible_op(op, x, y)
@@ -81,8 +83,7 @@ vec_arith.ttables_ratio.numeric <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.numeric ttables_ratio
 vec_arith.numeric.ttables_ratio <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "*" = new_ratio(vec_arith_base(op, x, y)),
     stop_incompatible_op(op, x, y)
   )
@@ -91,8 +92,8 @@ vec_arith.numeric.ttables_ratio <- function(op, x, y, ...) {
 #' @method vec_arith.ttables_ratio MISSING
 vec_arith.ttables_ratio.MISSING <- function(op, x, y, ...) {
   switch(op,
-         `-` = x * -1,
-         `+` = x,
-         stop_incompatible_op(op, x, y)
+    `-` = x * -1,
+    `+` = x,
+    stop_incompatible_op(op, x, y)
   )
 }

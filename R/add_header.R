@@ -16,23 +16,51 @@
 #' @returns A Typst table with the new header row added.
 #' @export
 add_header <- function(x, content, position = 1, span = list()) {
-  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
-  if (!is.character(content)) stop("'content' must be a character vector")
-  if (!rlang::is_list(span)) rlang::abort("'span' must be a list")
-  if (!all(vapply(span, \(s) rlang::is_bare_numeric(s, 2), logical(1)))) rlang::abort("Each span element must be a vector c(<start-column>, <width>)")
+  if (!inherits(x, "ttables_tbl")) {
+    stop("'x' must be a `ttables_tbl` object")
+  }
+  if (!is.character(content)) {
+    stop("'content' must be a character vector")
+  }
+  if (!rlang::is_list(span)) {
+    rlang::abort("'span' must be a list")
+  }
+  if (!all(vapply(span, \(s) rlang::is_bare_numeric(s, 2), logical(1)))) {
+    rlang::abort(
+      "Each span element must be a vector c(<start-column>, <width>)"
+    )
+  }
 
   spans <- vector("list", length(span))
   for (i in seq_along(span)) {
     s <- span[[i]]
-    if (is.null(names(s))) names(s) <- c("column", "width")
-    spans[[i]] <- list(cell = cells(!!s[["column"]], !!position, "header"),
-                       size = s[["width"]])
+    if (is.null(names(s))) {
+      names(s) <- c("column", "width")
+    }
+    spans[[i]] <- list(
+      cell = cells(!!s[["column"]], !!position, "header"),
+      size = s[["width"]]
+    )
     content <- append(content, rep("", s[["width"]] - 1), s[["column"]])
   }
-  if (length(content) != ncol(x$`_header`)) stop("'content' must have one entry per table column")
+  if (length(content) != ncol(x$`_header`)) {
+    stop("'content' must have one entry per table column")
+  }
   names(content) <- colnames(x$`_header`)
-  header <- tibble::as_tibble_row(content)
-  x$`_header` <- tibble::add_row(x$`_header`, header, .before = position)
-  for (s in spans) x <- colspan(x, s$cell, s$size)
+  header <- as.data.frame(as.list(content))
+  x$`_header` <- if (position <= 1) {
+    rbind(header, x$`_header`)
+  } else if (position > nrow(x$`_header`)) {
+    rbind(x$`_header`, header)
+  } else {
+    rbind(
+      x$`_header`[1L:(position - 1L), ],
+      header,
+      x$`_header`[position:nrow(x$`_header`), ]
+    )
+  }
+  for (s in spans) {
+    x <- colspan(x, s$cell, s$size)
+  }
   x
 }

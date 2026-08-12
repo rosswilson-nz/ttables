@@ -6,14 +6,6 @@
 NULL
 
 #' @export
-#' @importFrom magrittr %>%
-magrittr::`%>%`
-
-#' @export
-#' @importFrom rlang :=
-rlang::`:=`
-
-#' @export
 #' @importFrom tidyselect all_of
 tidyselect::all_of
 

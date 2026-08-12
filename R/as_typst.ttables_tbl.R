@@ -26,14 +26,14 @@ print_widths <- function(widths, nc) {
   } else if (identical(widths, "span")) {
     widths <- rep("1fr", nc)
   }
-  glue::glue("({widths})", widths = glue::glue_collapse(widths, ","))
+  sprintf("(%s)", paste(widths, collapse = ","))
 }
 
 print_align <- function(align, nc) {
   if (length(align) == 1) {
     align <- rep(align, nc)
   }
-  glue::glue("({align})", align = glue::glue_collapse(align, ","))
+  sprintf("(%s)", paste(align, collapse = ","))
 }
 
 print_gutter <- function(gutter) {
@@ -42,12 +42,13 @@ print_gutter <- function(gutter) {
   }
   g <- unclass(gutter)
   column <- if (!(is.null(g$column) | is.na(g$column))) {
-    glue::glue("column-gutter: {column}", column = format(g$column))
+    sprintf("column-gutter: %s", format(g$column))
   }
   row <- if (!(is.null(g$row) | is.na(g$row))) {
-    glue::glue("row-gutter: {row}", row = format(g$row))
+    sprintf("row-gutter: %s", format(g$row))
   }
-  glue::glue(column, row, .sep = ", ", .null = NULL)
+  sep <- if (!is.null(column) && !is.null(row)) ", "
+  sprintf("%s%s%s", column %||% "", sep %||% "", row %||% "")
 }
 
 print_typst_content <- function(mat, opts, fns) {
@@ -57,24 +58,29 @@ print_typst_content <- function(mat, opts, fns) {
 print_footnotes <- function(df, opts, nc) {
   if (nrow(df)) {
     df <- df[order(factor(df$type, opts$footnotes.order), df$ref), ]
-    ref <- dplyr::recode_values(
-      df$type,
-      "number" ~ get_fn_num(df$ref, opts$footnotes.number),
-      "alphabet" ~ get_fn_alph(df$ref, opts$footnotes.alphabet),
-      "symbol" ~ get_fn_sym(df$ref, opts$footnotes.symbol)
-    )
+    ref <- character(length(df$type))
+    ref[df$type == "number"] <- get_fn_num(df$ref, opts$footnotes.number)[
+      df$type == "number"
+    ]
+    ref[df$type == "alphabet"] <- get_fn_alph(df$ref, opts$footnotes.alphabet)[
+      df$type == "alphabet"
+    ]
+    ref[df$type == "symbol"] <- get_fn_sym(df$ref, opts$footnotes.symbol)[
+      df$type == "symbol"
+    ]
 
-    footnotes <- glue::glue(
-      "{fn_ref}{content}",
-      content = df$content,
-      fn_ref = glue::glue("#super[{ref}] ", .na = NULL),
-      .na = ""
-    )
-    footnote_text <- glue::glue_collapse(footnotes, sep = "\n\n    ")
-    glue::glue(
-      "table.cell(colspan: {nc}, text(size: {opts$footnotes.size})[
-        {footnote_text}
-    ])"
+    fn_ref <- sprintf("#super[%s]", ref)
+    fn_ref[is.na(ref) | ref == ""] <- ""
+
+    content <- df$content
+    content[is.na(content)] <- ""
+
+    footnote <- paste(sprintf("%s%s", fn_ref, content), collapse = "\n\n    ")
+    sprintf(
+      "table.cell(colspan: %s, text(size: %s)[\n    %s\n])",
+      nc,
+      opts$footnotes.size,
+      footnote
     )
   }
 }
@@ -86,9 +92,9 @@ format_spans <- function(mat, opts) {
       cell <- mat[[r, c]]
       if (!is.null(attr(cell, "colspan")) && attr(cell, "colspan") > 1) {
         if (!is.na(attr(cell, "combine"))) {
-          mat[[r, c]][[1]] <- glue::glue_collapse(
+          mat[[r, c]][[1]] <- paste(
             unlist(mat[r, c + seq_len(attr(cell, "colspan")) - 1]),
-            attr(cell, "combine")
+            collapse = attr(cell, "combine")
           )
         }
         for (cc in c + seq_len(attr(cell, "colspan") - 1)) {
@@ -109,9 +115,9 @@ format_spans <- function(mat, opts) {
       cell <- mat[[r, c]]
       if (!is.null(attr(cell, "rowspan")) && attr(cell, "rowspan") > 1) {
         if (!is.na(attr(cell, "combine"))) {
-          mat[[r, c]][[1]] <- glue::glue_collapse(
+          mat[[r, c]][[1]] <- paste(
             unlist(mat[r + seq_len(attr(cell, "rowspan")) - 1, c]),
-            attr(cell, "combine")
+            collapse = attr(cell, "combine")
           )
         }
         for (rr in r + seq_len(attr(cell, "rowspan") - 1)) {
@@ -124,7 +130,11 @@ format_spans <- function(mat, opts) {
 }
 
 format_contents <- function(x, opts, fns) {
-  out <- glue::glue(x[[1]], .na = opts$na)
+  out <- x[[1]]
+  if (is.na(out)) {
+    out <- opts$na
+  }
+
   out <- add_footnote_refs(out, x, fns, opts)
   out <- add_indents(out, x, opts)
   out <- add_textstyle(out, x, opts)
@@ -139,70 +149,73 @@ print_cells <- function(mat) {
 
 print_cell <- function(x) {
   if (is.null(x[[1]])) {
-    return(glue::glue())
+    return(character())
   }
   colspan <- if (!is.null(attr(x, "colspan"))) {
-    glue::glue("colspan: {colspan}", colspan = attr(x, "colspan"))
+    sprintf("colspan: %s", attr(x, "colspan"))
   }
   rowspan <- if (!is.null(attr(x, "rowspan"))) {
-    glue::glue("rowspan: {rowspan}", rowspan = attr(x, "rowspan"))
+    sprintf("rowspan: %s", attr(x, "rowspan"))
   }
   align <- if (!is.null(attr(x, "align"))) {
-    glue::glue("align: {align}", align = attr(x, "align"))
+    sprintf("align: %s", attr(x, "align"))
   }
   stroke <- if (!is.null(attr(x, "stroke"))) {
-    glue::glue("stroke: {stroke}", stroke = format(attr(x, "stroke")))
+    sprintf("stroke: %s", format(attr(x, "stroke")))
   }
   fill <- if (!is.null(attr(x, "fill"))) {
-    glue::glue("fill: {fill}", fill = format(attr(x, "fill")))
+    sprintf("fill: %s", format(attr(x, "fill")))
   }
-  cellstyles <- glue::glue(
-    colspan,
-    rowspan,
-    align,
-    stroke,
-    fill,
-    .sep = ", ",
-    .null = NULL
-  )
+  attrs <- list(colspan, rowspan, align, stroke, fill)
+  attrs <- attrs[sapply(attrs, \(x) !is.null(x))]
+  cellstyles <- do.call(paste, append(attrs, list(sep = ", ")))
   if (length(cellstyles)) {
-    x <- glue::glue("#table.cell({cellstyles})[{x}]", .null = NULL)
+    x <- sprintf("#table.cell(%s)[%s]", cellstyles, x)
   }
 
-  glue::glue("[{x}]")
+  sprintf("[%s]", x)
 }
 
 print_table <- function(widths, align, gutter, header, body, footnotes) {
-  glue::glue(
-    "#table(
-    columns: {widths},
-    align: {align}{gutter},
-    table.hline(),
-    table.header({header}),
-    table.hline(y: {nh - 1}, position: bottom),
-    {body},
-    table.hline(),
-    table.footer(repeat: false, {footnotes})
+  columns <- sprintf("columns: %s", widths)
+  align <- sprintf("align: %s", align)
+  gutter <- if (!is.null(gutter)) sprintf(",\n    %s", gutter) else ""
+  nh <- nrow(header)
+  header <- paste(apply(header, 1, print_row), collapse = ",\n    ")
+  header <- sprintf(
+    "table.hline(),\n    table.header(%s),\n    table.hline(y: %s, position: bottom)",
+    header,
+    nh - 1
   )
-  ",
-    nh = nrow(header),
-    gutter = if (length(gutter)) glue::glue(",\n    {gutter}", .trim = FALSE),
-    header = glue::glue_collapse(
-      apply(header, 1, \(x) print_row(x)),
-      sep = ",\n    "
-    ),
-    body = glue::glue_collapse(
-      apply(body, 1, \(x) print_row(x)),
-      sep = ",\n    "
-    ),
-    .null = NULL,
-    .trim = FALSE
+  body <- paste(apply(body, 1, print_row), collapse = ",\n    ")
+  footer <- if (!is.null(footnotes)) {
+    sprintf(
+      "table.hline(),\n    table.footer(repeat: false, %s)",
+      footnotes
+    )
+  } else {
+    "table.hline"
+  }
+  sprintf(
+    "#table
+    %s,
+    %s%s,
+    %s,
+    %s,
+    %s
+)",
+    columns,
+    align,
+    gutter,
+    header,
+    body,
+    footer
   )
 }
 
 print_row <- function(row) {
   drop <- vapply(row, \(x) length(x) == 0, logical(1))
-  glue::glue_collapse(row[!drop], sep = ", ")
+  paste(row[!drop], collapse = ", ")
 }
 
 add_footnote_refs <- function(out, x, fns, opts) {
@@ -210,44 +223,49 @@ add_footnote_refs <- function(out, x, fns, opts) {
   if (is.null(fns)) {
     out
   } else {
-    glue::glue(
-      "{out}{fn}",
-      fn = glue::glue("#super[", fns, "]"),
-      .null = NULL,
-      .na = opts$na
-    )
+    fn_ref <- sprintf("#super[%s]", fns)
+    fn_ref[is.na(fns) | fns == ""] <- ""
+    sprintf("%s%s", out, fn_ref)
   }
 }
 
 get_footnotes <- function(x, fns, opts) {
   fn_num <- if (!is.null(attr(x, "footnote_num"))) {
     idxs <- fns[fns$type == "number", ]$ref
-    glue::glue_collapse(
+    paste(
       get_fn_num(idxs[attr(x, "footnote_num")], opts$footnotes.number),
-      sep = ","
+      collapse = ","
     )
   }
   fn_alph <- if (!is.null(attr(x, "footnote_alph"))) {
     idxs <- fns[fns$type == "alphabet", ]$ref
-    glue::glue_collapse(
+    paste(
       get_fn_alph(idxs[attr(x, "footnote_alph")], opts$footnotes.alphabet),
-      sep = ","
+      collapse = ","
     )
   }
   fn_sym <- if (!is.null(attr(x, "footnote_sym"))) {
     idxs <- fns[fns$type == "symbol", ]$ref
-    glue::glue_collapse(
+    paste(
       get_fn_sym(idxs[attr(x, "footnote_sym")], opts$footnotes.symbol),
-      sep = ","
+      collapse = ","
     )
   }
-  fn <- glue::glue(fn_num, fn_alph, fn_sym, .sep = ",", .null = NULL)
-  if (length(fn)) fn else NULL
+  sep1 <- if (!is.null(fn_num) && !is.null(fn_alph)) ","
+  sep2 <- if (!is.null(fn_alph) && !is.null(fn_sym)) ","
+  fn <- sprintf(
+    "%s%s%s%s%s",
+    fn_num %||% "",
+    sep1 %||% "",
+    fn_alph %||% "",
+    sep2 %||% "",
+    fn_sym %||% ""
+  )
+  if (fn == "") NULL else fn
 }
 
 get_fn_num <- function(num, style) {
-  switch(
-    style,
+  switch(style,
     arabic = as.character(num),
     roman = tolower(utils::as.roman(num)),
     Roman = utils::as.roman(num)
@@ -256,14 +274,16 @@ get_fn_num <- function(num, style) {
 
 get_fn_alph <- function(num, style) {
   out <- character(length(num))
-  out[num != 0] <- switch(style, lower = letters[num], upper = LETTERS[num])
+  out[num != 0] <- switch(style,
+    lower = letters[num],
+    upper = LETTERS[num]
+  )
   out
 }
 
 get_fn_sym <- function(num, style) {
   out <- character(length(num))
-  out[num != 0] <- switch(
-    style,
+  out[num != 0] <- switch(style,
     standard = syms_standard[num],
     extended = syms_extended[num]
   )
@@ -285,36 +305,32 @@ add_indents <- function(out, x, opts) {
   ) {
     out
   } else {
-    glue::glue(
-      "{indent}{out}",
-      indent = glue::glue("#h(", format(attr(x, "indent")), ")"),
-      .null = NULL,
-      .na = opts$na
-    )
+    sprintf("#h(%s)%s", format(attr(x, "indent")), out)
   }
 }
 
 add_textstyle <- function(out, x, opts) {
   bold <- if (!is.null(attr(x, "bold"))) {
-    glue::glue(
-      "weight: \"{bold}\"",
-      bold = if (attr(x, "bold")) "bold" else "regular"
-    )
+    sprintf("weight: \"%s\"", if (attr(x, "bold")) "bold" else "regular")
   }
   italic <- if (!is.null(attr(x, "italic"))) {
-    glue::glue(
-      "style: \"{italic}\"",
-      italic = if (attr(x, "italic")) "italic" else "normal"
-    )
+    sprintf("style: \"%s\"", if (attr(x, "italic")) "italic" else "normal")
   }
-  size <- if (!is.null(attr(x, "size"))) {
-    glue::glue("size: {size}", size = glue::glue("{attr(x, 'size')}"))
-  }
-  styles <- glue::glue(bold, italic, size, .sep = ", ", .null = NULL)
-  if (length(styles) == 0) {
+  size <- if (!is.null(attr(x, "size"))) sprintf("size: %s", attr(x, "size"))
+  sep1 <- if (!is.null(bold) && !is.null(italic)) ", " else ""
+  sep2 <- if (!is.null(italic) && !is.null(size)) ", " else ""
+  styles <- sprintf(
+    "%s%s%s%s%s",
+    bold %||% "",
+    sep1,
+    italic %||% "",
+    sep2,
+    size %||% ""
+  )
+  if (length(styles) == 0 || styles == "") {
     out
   } else {
-    glue::glue("#text({styles})[{out}]", .null = NULL, .na = opts$na)
+    sprintf("#text(%s)[%s]", styles, out)
   }
 }
 

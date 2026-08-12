@@ -1,15 +1,23 @@
 new_width <- function(x = list()) {
-  if (!rlang::is_list(x)) rlang::abort("'x' must be a list.")
-  if (!all(vapply(x, is_track_size, logical(1)))) rlang::abort("'x' must be a list of Typst track sizes")
+  if (!rlang::is_list(x)) {
+    rlang::abort("'x' must be a list.")
+  }
+  if (!all(vapply(x, is_track_size, logical(1)))) {
+    rlang::abort("'x' must be a list of Typst track sizes")
+  }
   new_vctr(x, class = "ttables_width")
 }
 width <- function(x = list()) {
   x <- rlang::as_list(x)
   new_width(x)
 }
+#' Test for `width` class
+#' @param x Object to Test
+#' @export
 is_width <- function(x) inherits(x, "width")
 is_track_size <- function(x) {
-  length(x) == 1 && (is_length(x) || is_auto(x) || is_fractional_length(x) || is_relative(x))
+  length(x) == 1 &&
+    (is_length(x) || is_auto(x) || is_fractional_length(x) || is_relative(x))
 }
 #' @export
 format.ttables_width <- function(x, ...) {
@@ -38,9 +46,15 @@ as_width <- function(x) {
   new_width(value)
 }
 extract_track_size <- function(x) {
-  if (is.numeric(x)) return(new_fractional_length(x))
-  if (x == "auto") return(auto())
+  if (is.numeric(x)) {
+    return(new_fractional_length(x))
+  }
+  if (x == "auto") {
+    return(auto())
+  }
   n <- nchar(x)
-  if (substr(x, n - 1, n) == "fr") return(as_fractional_length(x))
+  if (substr(x, n - 1, n) == "fr") {
+    return(as_fractional_length(x))
+  }
   as_relative(x)
 }

@@ -24,8 +24,8 @@ ttab(
 
 \item{label}{Table label, used for cross-referencing}
 
-\item{rownames}{Passed to \code{\link[tibble:as_tibble]{tibble::as_tibble()}}. How to treat existing row
-names of \code{x}.}
+\item{rownames}{How to treat existing row names of \code{x}. Same specification as
+\code{\link[tibble:as_tibble]{tibble::as_tibble()}}.}
 
 \item{colnames}{Column names to be used in the table. Default is to take the
 existing column names of \code{x}.}

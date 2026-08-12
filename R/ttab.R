@@ -7,8 +7,8 @@
 #' @param x An R data frame.
 #' @param caption The table caption.
 #' @param label Table label, used for cross-referencing
-#' @param rownames Passed to [tibble::as_tibble()]. How to treat existing row
-#'     names of `x`.
+#' @param rownames How to treat existing row names of `x`. Same specification as
+#'     [tibble::as_tibble()].
 #' @param colnames Column names to be used in the table. Default is to take the
 #'     existing column names of `x`.
 #' @param align Column alignment. Either `"auto"` or a vector with the
@@ -38,23 +38,45 @@
 #' ttab(mtcars)
 #'
 #' @export
-ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NULL, align = "auto",
-                 widths = "auto", placement = "auto", fontsize = NULL, gutter = NULL) {
-  if (!is.data.frame(x)) stop("'x' must be a data frame")
+ttab <- function(
+  x,
+  caption = NULL,
+  label = NULL,
+  rownames = NULL,
+  colnames = NULL,
+  align = "auto",
+  widths = "auto",
+  placement = "auto",
+  fontsize = NULL,
+  gutter = NULL
+) {
+  if (!is.data.frame(x)) {
+    stop("'x' must be a data frame")
+  }
 
-  `_body` <- tibble::as_tibble(x, rownames = rownames)
+  `_body` <- x
+  if (is.null(rownames)) {
+    rownames(`_body`) <- NULL
+  } else if (is.character(rownames) && length(rownames) == 1) {
+    `_body`[[rownames]] <- rownames(`_body`)
+    rownames(`_body`) <- NULL
+  }
 
-  if (is.null(colnames)) colnames <- colnames(`_body`)
+  if (is.null(colnames)) {
+    colnames <- colnames(`_body`)
+  }
   names(colnames) <- colnames(`_body`)
-  `_header` <- tibble::as_tibble_row(colnames)
+  `_header` <- as.data.frame(as.list(colnames))
 
   fontsize <- if (is.null(fontsize)) {
     NA_length_
   } else if (is.numeric(fontsize)) {
-    as_length(paste0(fontsize, "pt")) }
-  else as_length(fontsize)
+    as_length(paste0(fontsize, "pt"))
+  } else {
+    as_length(fontsize)
+  }
 
-  `_format` <- tibble::tibble(
+  `_format` <- vctrs::data_frame(
     column = NA_integer_,
     row = NA_integer_,
     location = "table",
@@ -67,22 +89,24 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     fill = NA_colour_
   )
 
-  `_opts` <- collate_initial_table_opts(widths = widths,
-                                        align = align,
-                                        gutter = gutter,
-                                        placement = placement,
-                                        caption = caption,
-                                        label = label,
-                                        fontsize = fontsize,
-                                        ncols = ncol(`_body`))
+  `_opts` <- collate_initial_table_opts(
+    widths = widths,
+    align = align,
+    gutter = gutter,
+    placement = placement,
+    caption = caption,
+    label = label,
+    fontsize = fontsize,
+    ncols = ncol(`_body`)
+  )
 
-  `_footnotes` <- tibble::tibble(
+  `_footnotes` <- vctrs::data_frame(
     location = list(),
     type = character(),
     content = character()
   )
 
-  `_layout` <- tibble::tibble(
+  `_layout` <- vctrs::data_frame(
     column = integer(),
     row = integer(),
     location = character(),
@@ -90,15 +114,19 @@ ttab <- function(x, caption = NULL, label = NULL, rownames = NULL, colnames = NU
     combine = character()
   )
 
-  `_added_rows` <- dplyr::mutate(`_body`[0, ], `_insert_before` = integer())
+  `_added_rows` <- `_body`[0, ]
+  `_added_rows`["_insert_before"] <- integer()
 
-  structure(list(
-    `_opts` = `_opts`,
-    `_format` = `_format`,
-    `_layout` = `_layout`,
-    `_header` = `_header`,
-    `_body` = `_body`,
-    `_added_rows` = `_added_rows`,
-    `_footnotes` = `_footnotes`
-  ), class = "ttables_tbl")
+  structure(
+    list(
+      `_opts` = `_opts`,
+      `_format` = `_format`,
+      `_layout` = `_layout`,
+      `_header` = `_header`,
+      `_body` = `_body`,
+      `_added_rows` = `_added_rows`,
+      `_footnotes` = `_footnotes`
+    ),
+    class = "ttables_tbl"
+  )
 }

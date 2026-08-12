@@ -17,26 +17,65 @@
 #'
 #' @returns A Typst table with the specified grouped rows.
 #' @export
-pack_rows <- function(x, start, nrows, label = NULL, italic = TRUE, bold = FALSE, align = NULL, indent = TRUE) {
-  if (!inherits(x, "ttables_tbl")) stop("'x' must be a `ttables_tbl` object")
-  if (!(is.numeric(start) && length(start) == 1 && is_wholenumber(start))) stop("'start' must be an integer scalar")
+pack_rows <- function(
+  x,
+  start,
+  nrows,
+  label = NULL,
+  italic = TRUE,
+  bold = FALSE,
+  align = NULL,
+  indent = TRUE
+) {
+  if (!inherits(x, "ttables_tbl")) {
+    stop("'x' must be a `ttables_tbl` object")
+  }
+  if (!(is.numeric(start) && length(start) == 1 && is_wholenumber(start))) {
+    stop("'start' must be an integer scalar")
+  }
   start <- resolve_location(cells(columns = 1, rows = start), x)
-  if (!(is.numeric(nrows) && length(nrows) == 1 & is_wholenumber(nrows))) stop("'nrows' must be an integer scalar")
-  if (!is.null(label) && !(is.character(label) && length(label) == 1)) stop("'label' must be a character scalar")
-  if (isTRUE(indent)) indent <- "1em"
-  if (isFALSE(indent)) indent <- "0pt"
-  if (is.numeric(indent)) indent <- paste0(indent, "em")
+  if (!(is.numeric(nrows) && length(nrows) == 1 & is_wholenumber(nrows))) {
+    stop("'nrows' must be an integer scalar")
+  }
+  if (!is.null(label) && !(is.character(label) && length(label) == 1)) {
+    stop("'label' must be a character scalar")
+  }
+  if (isTRUE(indent)) {
+    indent <- "1em"
+  }
+  if (isFALSE(indent)) {
+    indent <- "0pt"
+  }
+  if (is.numeric(indent)) {
+    indent <- paste0(indent, "em")
+  }
   indent <- as_length(indent)
-  if (length(indent) != 1) rlang::abort("'indent' must be a scalar length")
+  if (length(indent) != 1) {
+    rlang::abort("'indent' must be a scalar length")
+  }
 
   if (!is.null(label)) {
-  firstvar <- colnames(x$`_body`)[[1]]
-  new_row <- tibble::tibble({{firstvar}} := label, `_insert_before` = start$rows)
-  x$`_added_rows` <- tibble::add_row(x$`_added_rows`, new_row)
-  x <- x %>%
-    colspan(cells(1, !!nrow(x$`_added_rows`), "added_rows"), ncol(x$`_added_rows`) - 1) %>%
-    format_cells(cells(1, !!nrow(x$`_added_rows`), "added_rows"), bold = bold, italic = italic, align = align)
+    firstvar <- colnames(x$`_body`)[[1]]
+    new_row <- list()
+    new_row[firstvar] <- label
+    new_row["_insert_before"] <- start$rows
+    new_row <- vctrs::new_data_frame(new_row)
+    x$`_added_rows` <- rbind(x$`_added_rows`, new_row)
+    x <- colspan(
+      x,
+      cells(1, !!nrow(x$`_added_rows`), "added_rows"),
+      ncol(x$`_added_rows`) - 1
+    )
+    x <- format_cells(
+      x,
+      cells(1, !!nrow(x$`_added_rows`), "added_rows"),
+      bold = bold,
+      italic = italic,
+      align = align
+    )
   }
-  if (indent != "0") x <- x %>% add_indent(cells(1, start$rows + seq_len(nrows) - 1), indent)
+  if (indent != "0") {
+    x <- add_indent(x, cells(1, start$rows + seq_len(nrows) - 1), indent)
+  }
   x
 }
