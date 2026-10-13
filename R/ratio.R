@@ -4,12 +4,30 @@ new_ratio <- function(x = double()) {
   }
   new_vctr(x, class = "ttables_ratio")
 }
+
+#' Ratio specification
+#'
+#' Create a new ratio specification
+#'
+#' Corresponds and translates to a Typst `ratio`.
+#'
+#' @param x For `ratio()`, a numeric vector; otherwise an object
+#'     to test or convert.
+#'
+#' @export
 ratio <- function(x = double()) {
   x <- vec_cast(x, double())
   new_ratio(x)
 }
+
+#' @rdname ratio
+#' @export
 is_ratio <- function(x) inherits(x, "ttables_ratio")
+
+#' @rdname ratio
+#' @export
 NA_ratio_ <- new_ratio(NA_real_)
+
 #' @export
 format.ttables_ratio <- function(x, ...) {
   out <- formatC(vec_data(x), ...)
@@ -17,10 +35,12 @@ format.ttables_ratio <- function(x, ...) {
   out[!is.na(x)] <- paste0(out[!is.na(x)], "%")
   out
 }
+
 #' @export
 vec_ptype_abbr.ttables_ratio <- function(x, ...) "rtio"
 #' @export
 vec_ptype_full.ttables_ratio <- function(x, ...) "ratio"
+
 #' @export
 vec_ptype2.ttables_ratio.ttables_ratio <- function(x, y, ...) new_ratio()
 #' @export
@@ -50,7 +70,11 @@ vec_cast.ttables_ratio.character <- function(x, to, ...) {
 }
 #' @export
 vec_cast.character.ttables_ratio <- function(x, to, ...) format(x)
+
+#' @rdname ratio
+#' @export
 as_ratio <- function(x) vec_cast(x, new_ratio())
+
 #' @export
 #' @method vec_arith ttables_ratio
 vec_arith.ttables_ratio <- function(op, x, y, ...) {

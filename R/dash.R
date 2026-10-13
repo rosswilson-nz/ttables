@@ -36,20 +36,40 @@ typst_dashes <- function() {
     "loosely-dash-dotted"
   )
 }
+
+#' Dash specification
+#'
+#' Create a new dash specification
+#'
+#' Corresponds and translates to the *`dash`* field of a Typst `stroke`.
+#'
+#' @param x For `dash()`, a character vector; otherwise an object to test
+#'     or convert.
+#'
+#' @export
 dash <- function(x = character()) {
   new_dash(x)
 }
-#' Test for `dash` class
-#' @param x Object to Test
+
+#' @rdname dash
 #' @export
 is_dash <- function(x) inherits(x, "ttables_dash")
+
+#' @rdname dash
+#' @export
 NA_dash_ <- new_dash(NA_character_)
+
 #' @export
 format.ttables_dash <- function(x, ..., justify = "none") {
   out <- format(vec_data(x), justify = justify)
   out[is.na(x)] <- NA
   out
 }
+
+#' @rdname dash
+#' @export
+as_dash <- function(x) vec_cast(x, dash())
+
 #' @export
 vec_ptype_abbr.ttables_dash <- function(x, ...) "dash"
 #' @export
@@ -62,6 +82,7 @@ vec_ptype2.character.ttables_dash <- function(x, y, ...) character()
 vec_cast.ttables_dash.character <- function(x, to, ...) dash(x)
 #' @export
 vec_cast.character.ttables_dash <- function(x, to, ...) vec_data(x)
+
 #' @export
 #' @method vec_arith ttables_dash
 vec_arith.ttables_dash <- function(op, x, y, ...) {
@@ -72,12 +93,3 @@ vec_arith.ttables_dash <- function(op, x, y, ...) {
 vec_arith.ttables_dash.default <- function(op, x, y, ...) {
   stop_incompatible_op(op, x, y)
 }
-
-# #' @export
-# #' @method vec_arith.ttables_horiz_alignment ttables_vert_alignment
-# vec_arith.ttables_horiz_alignment.ttables_vert_alignment <- function(op, x, y, ...) {
-#   switch(op,
-#          "+" = new_alignment(x, y),
-#          stop_incompatible_op(op, x, y))
-# }
-#

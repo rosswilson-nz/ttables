@@ -1,85 +1,120 @@
 new_fractional_length <- function(x = double()) {
-  if (!rlang::is_double(x)) rlang::abort("'x' must be a double vector.")
+  if (!rlang::is_double(x)) {
+    rlang::abort("'x' must be a double vector.")
+  }
   new_vctr(x, class = "ttables_fractional_length")
 }
+
+#' Fractional length specification
+#'
+#' Create a new fractional length specification
+#'
+#' Corresponds and translates to a Typst `fraction`.
+#'
+#' @param x For `fractional_length()`, a numeric vector; otherwise an object
+#'     to test or convert.
+#'
+#' @export
 fractional_length <- function(x = double()) {
   x <- vec_cast(x, double())
   new_fractional_length(x)
 }
+
+#' @rdname fractional_length
+#' @export
 is_fractional_length <- function(x) inherits(x, "ttables_fractional_length")
+
+#' @rdname fractional_length
+#' @export
 NA_fractional_length_ <- new_fractional_length(NA_real_)
-#'@export
+
+#' @export
 format.ttables_fractional_length <- function(x, ...) {
   out <- formatC(vec_data(x), ...)
   out[is.na(x)] <- NA
   out[!is.na(x)] <- paste0(out[!is.na(x)], "fr")
   out
 }
-#'@export
+
+#' @export
 vec_ptype_abbr.ttables_fractional_length <- function(x, ...) "frlen"
-#'@export
+#' @export
 vec_ptype_full.ttables_fractional_length <- function(x, ...) "frac_length"
-#'@export
-vec_cast.ttables_fractional_length.double <- function(x, to, ...) fractional_length(x)
-#'@export
+#' @export
+vec_cast.ttables_fractional_length.double <- function(x, to, ...) {
+  fractional_length(x)
+}
+#' @export
 vec_cast.double.ttables_fractional_length <- function(x, to, ...) vec_data(x)
-#'@export
-vec_cast.ttables_fractional_length.character <- function(x, to, ...) as_fractional_length(x)
+#' @export
+vec_cast.ttables_fractional_length.character <- function(x, to, ...) {
+  as_fractional_length(x)
+}
+#' @export
+vec_cast.character.ttables_fractional_length <- function(x, to, ...) format(x)
+
+#' @rdname fractional_length
+#' @export
 as_fractional_length <- function(x) {
   n <- nchar(x)
   unit <- substr(x, n - 1, n)
-  if (!all(substr(x, n - 1, n) == "fr")) rlang::abort("Invalid fractional length")
+  if (!all(substr(x, n - 1, n) == "fr")) {
+    rlang::abort("Invalid fractional length")
+  }
   value <- gsub("fr$", "", x)
-  #value <- rlang::try_fetch(as.numeric(value), warning = \(w) rlang::abort("Invalid fractional length", parent = w))
+  # value <- rlang::try_fetch(as.numeric(value), warning = \(w) rlang::abort("Invalid fractional length", parent = w))
   value <- as.numeric(value)
   new_fractional_length(value)
 }
-#'@export
+
+#' @export
 #' @method vec_arith ttables_fractional_length
 vec_arith.ttables_fractional_length <- function(op, x, y, ...) {
   UseMethod("vec_arith.ttables_fractional_length", y)
 }
-#'@export
+#' @export
 #' @method vec_arith.ttables_fractional_length default
 vec_arith.ttables_fractional_length.default <- function(op, x, y, ...) {
   stop_incompatible_op(op, x, y)
 }
-#'@export
+#' @export
 #' @method vec_arith.ttables_fractional_length ttables_fractional_length
-vec_arith.ttables_fractional_length.ttables_fractional_length <- function(op, x, y, ...) {
-  switch(
-    op,
+vec_arith.ttables_fractional_length.ttables_fractional_length <- function(
+  op,
+  x,
+  y,
+  ...
+) {
+  switch(op,
     "+" = ,
     "-" = new_fractional_length(vec_arith_base(op, x, y)),
     "/" = vec_arith_base(op, x, y),
     stop_incompatible_op(op, x, y)
   )
 }
-#'@export
+#' @export
 #' @method vec_arith.ttables_fractional_length numeric
 vec_arith.ttables_fractional_length.numeric <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "/" = ,
     "*" = new_fractional_length(vec_arith_base(op, x, y)),
     stop_incompatible_op(op, x, y)
   )
 }
-#'@export
+#' @export
 #' @method vec_arith.numeric ttables_fractional_length
 vec_arith.numeric.ttables_fractional_length <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "*" = new_fractional_length(vec_arith_base(op, x, y)),
     stop_incompatible_op(op, x, y)
   )
 }
-#'@export
+#' @export
 #' @method vec_arith.ttables_fractional_length MISSING
 vec_arith.ttables_fractional_length.MISSING <- function(op, x, y, ...) {
   switch(op,
-         `-` = x * -1,
-         `+` = x,
-         stop_incompatible_op(op, x, y)
+    `-` = x * -1,
+    `+` = x,
+    stop_incompatible_op(op, x, y)
   )
 }

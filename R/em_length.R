@@ -1,13 +1,33 @@
 new_em_length <- function(x = double()) {
-  if (!rlang::is_double(x)) rlang::abort("'x' must be a double vector.")
+  if (!rlang::is_double(x)) {
+    rlang::abort("'x' must be a double vector.")
+  }
   new_vctr(x, class = "ttables_em_length")
 }
+
+#' Em length specification
+#'
+#' Create a new em length specification
+#'
+#' Corresponds and translates to the *`em`* field of a Typst `length`.
+#'
+#' @param x For `em_length()`, a numeric vector; otherwise an object to test
+#'     or convert.
+#'
+#' @export
 em_length <- function(x = double()) {
   x <- vec_cast(x, double())
   new_em_length(x)
 }
+
+#' @rdname em_length
+#' @export
 is_em_length <- function(x) inherits(x, "ttables_em_length")
+
+#' @rdname em_length
+#' @export
 NA_em_length_ <- new_em_length(NA_real_)
+
 #' @export
 format.ttables_em_length <- function(x, ...) {
   out <- formatC(vec_data(x), ...)
@@ -15,6 +35,7 @@ format.ttables_em_length <- function(x, ...) {
   out[!is.na(x)] <- paste0(out[!is.na(x)], "em")
   out
 }
+
 #' @export
 vec_ptype_abbr.ttables_em_length <- function(x, ...) "em"
 #' @export
@@ -25,18 +46,25 @@ vec_cast.ttables_em_length.double <- function(x, to, ...) em_length(x)
 vec_cast.double.ttables_em_length <- function(x, to, ...) vec_data(x)
 #' @export
 vec_cast.ttables_em_length.character <- function(x, to, ...) as_em_length(x)
+
+#' @rdname em_length
+#' @export
 as_em_length <- function(x) {
   n <- nchar(x)
   unit <- substr(x, n - 1, n)
-  if (!all(unit == "em" | is.na(x))) rlang::abort("Invalid em length")
+  if (!all(unit == "em" | is.na(x))) {
+    rlang::abort("Invalid em length")
+  }
   value <- gsub("em$", "", x)
-  #value <- rlang::try_fetch(as.numeric(value), warning = \(w) rlang::abort("Invalid em length", parent = w))
+  # value <- rlang::try_fetch(as.numeric(value), warning = \(w) rlang::abort("Invalid em length", parent = w))
   value <- gsub("[[:blank:]]", "", value)
   value <- as.numeric(value)
   new_em_length(value)
 }
+
 #' @export
 vec_cast.character.ttables_em_length <- function(x, to, ...) format(x)
+
 #' @export
 #' @method vec_arith ttables_em_length
 vec_arith.ttables_em_length <- function(op, x, y, ...) {
@@ -50,8 +78,7 @@ vec_arith.ttables_em_length.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_em_length ttables_em_length
 vec_arith.ttables_em_length.ttables_em_length <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "+" = ,
     "-" = new_em_length(vec_arith_base(op, x, y)),
     "/" = vec_arith_base(op, x, y),
@@ -61,8 +88,7 @@ vec_arith.ttables_em_length.ttables_em_length <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_em_length numeric
 vec_arith.ttables_em_length.numeric <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "/" = ,
     "*" = new_em_length(vec_arith_base(op, x, y)),
     stop_incompatible_op(op, x, y)
@@ -71,8 +97,7 @@ vec_arith.ttables_em_length.numeric <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.numeric ttables_em_length
 vec_arith.numeric.ttables_em_length <- function(op, x, y, ...) {
-  switch(
-    op,
+  switch(op,
     "*" = new_em_length(vec_arith_base(op, x, y)),
     stop_incompatible_op(op, x, y)
   )
@@ -81,8 +106,8 @@ vec_arith.numeric.ttables_em_length <- function(op, x, y, ...) {
 #' @method vec_arith.ttables_em_length MISSING
 vec_arith.ttables_em_length.MISSING <- function(op, x, y, ...) {
   switch(op,
-         `-` = x * -1,
-         `+` = x,
-         stop_incompatible_op(op, x, y)
+    `-` = x * -1,
+    `+` = x,
+    stop_incompatible_op(op, x, y)
   )
 }

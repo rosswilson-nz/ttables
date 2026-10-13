@@ -1,33 +1,86 @@
 new_colour <- function(x = character(), call = rlang::caller_env()) {
-  if (!rlang::is_character(x)) cli::cli_abort(c("'x' must be a character vector.",
-                                                "*" = "You've supplied {.obj_type_friendly {x}}."),
-                                              call = call)
-  if (!all(x %in% c(typst_colours(), NA_character_))) cli::cli_abort(c("All 'x' values must be valid colours.",
-                                                                       i = "See {.fn typst_colours} for the valid options."),
-                                                                     call = call)
+  if (!rlang::is_character(x)) {
+    cli::cli_abort(
+      c(
+        "'x' must be a character vector.",
+        "*" = "You've supplied {.obj_type_friendly {x}}."
+      ),
+      call = call
+    )
+  }
+  if (!all(x %in% c(typst_colours(), NA_character_))) {
+    cli::cli_abort(
+      c(
+        "All 'x' values must be valid colours.",
+        i = "See {.fn typst_colours} for the valid options."
+      ),
+      call = call
+    )
+  }
   new_vctr(x, class = "ttables_colour")
 }
 
 #' List the available Typst colours by name
 #' @export
 typst_colours <- function() {
-  c("black", "gray", "silver", "white", "navy", "blue", "aqua", "teal", "eastern", "purple",
-    "fuchsia", "maroon", "red", "orange", "yellow", "olive", "green", "lime")
+  c(
+    "black",
+    "gray",
+    "silver",
+    "white",
+    "navy",
+    "blue",
+    "aqua",
+    "teal",
+    "eastern",
+    "purple",
+    "fuchsia",
+    "maroon",
+    "red",
+    "orange",
+    "yellow",
+    "olive",
+    "green",
+    "lime"
+  )
 }
+
+#' Colour specification
+#'
+#' Create a new colour specification
+#'
+#' Corresponds and translates to a Typst `color`.
+#'
+#' @param x For `colour()`, a character vector; otherwise an object to test
+#'     or convert.
+#'
+#' @export
 colour <- function(x = character()) {
   new_colour(x)
 }
+
+#' @rdname colour
+#' @export
 is_colour <- function(x) inherits(x, "ttables_colour")
+
+#' @rdname colour
+#' @export
 NA_colour_ <- new_colour(NA_character_)
+
 #' @export
 is.na.ttables_colour <- function(x) vec_detect_missing(x)
+
+#' @rdname colour
+#' @export
 as_colour <- function(x) vec_cast(x, colour())
+
 #' @export
 format.ttables_colour <- function(x, ..., justify = "none") {
   out <- format(vec_data(x), justify = justify)
   out[is.na(x)] <- NA
   out
 }
+
 #' @export
 vec_ptype_abbr.ttables_colour <- function(x, ...) "colr"
 #' @export
@@ -50,12 +103,3 @@ vec_arith.ttables_colour <- function(op, x, y, ...) {
 vec_arith.ttables_colour.default <- function(op, x, y, ...) {
   stop_incompatible_op(op, x, y)
 }
-
-# #' @export
-# #' @method vec_arith.ttables_horiz_alignment ttables_vert_alignment
-# vec_arith.ttables_horiz_alignment.ttables_vert_alignment <- function(op, x, y, ...) {
-#   switch(op,
-#          "+" = new_alignment(x, y),
-#          stop_incompatible_op(op, x, y))
-# }
-#

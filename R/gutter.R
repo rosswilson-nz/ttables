@@ -1,65 +1,72 @@
-#' @include relative.R auto.R fractional-length.R
+#' @include width.R
 NULL
 
-new_gutter <- function(column = relative(), row = relative()) {
-  if (
-    !(is_auto(column) || is_relative(column) || is_fractional_length(column))
-  ) {
-    rlang::abort(
-      "'column' must be a relative length (`ttables_relative`) or fractional length (`ttables_fractional_length`) vector."
-    )
+new_gutter <- function(column = width(), row = width()) {
+  if (!(is_auto(column) || is_width(column))) {
+    rlang::abort("'column' must be `auto` or a `ttables_width` list.")
   }
-  if (!(is_auto(row) || is_relative(row) || is_fractional_length(row))) {
-    rlang::abort(
-      "'row' must be a relative length (`ttables_relative`) or fractional length (`ttables_fractional_length`) vector."
-    )
+  if (!(is_auto(row) || is_width(row))) {
+    rlang::abort("'row' must be `auto` or a `ttables_width` list.")
   }
-  new_rcrd(list(column = column, row = row), class = "ttables_gutter")
+  structure(list(column = column, row = row), class = "ttables_gutter")
 }
-gutter <- function(column = relative(), row = relative()) {
-  if (!(is_auto(column) || is_fractional_length(column))) {
-    column <- vec_cast(column, relative())
-  }
-  if (!(is_auto(row) || is_fractional_length(row))) {
-    row <- vec_cast(row, relative())
-  }
-  if (length(column) == 0 && length(row)) {
-    column <- rep(NA_relative_, length(row))
-  }
-  if (length(row) == 0 && length(column)) {
-    row <- rep(NA_relative_, length(column))
-  }
-  inputs <- vec_recycle_common(column, row)
-  new_gutter(column = inputs[[1]], row = inputs[[2]])
-}
+
+#' Gutter specification
+#'
+#' Create a new gutter specification
+#'
+#' Consists of a list of `column` and `row` gutter widths, each a `width` list
+#'     of track sizes.
+#'
+#' @param column,row A `width` list of track sizes, or `auto`.
+#' @param x An object to test or convert.
+#'
 #' @export
-format.ttables_gutter <- function(x, ...) {
+gutter <- function(column = width(), row = width()) {
+  if (!is_auto(column)) {
+    column <- as_width(column)
+  }
+  if (!is_auto(row)) {
+    row <- as_width(row)
+  }
+  new_gutter(column = column, row = row)
+}
+
+#' @export
+print.ttables_gutter <- function(x, ...) {
   column <- format(field(x, "column"))
   row <- format(field(x, "row"))
 
-  column.f <- paste0("column: ", format(column))
-  column.f[is.na(column)] <- NA_character_
-  row.f <- paste0("row: ", format(row))
-  row.f[is.na(row)] <- NA_character_
+  column.f <- if (length(column)) paste0("  columns: ", paste(column, collapse = ", "))
+  row.f <- if (length(row)) paste0("  rows: ", paste(row, collapse = ", "))
 
-  out <- paste(column.f, row.f, sep = ", ")
-  out[is.na(column.f)] <- row.f[is.na(column.f)]
-  out[is.na(row.f)] <- column.f[is.na(row.f)]
-  out[is.na(column.f) & is.na(row.f)] <- NA
+  out <- paste0(column.f, if (length(column.f) && length(row.f)) "\n", row.f)
+  if (length(out) == 0) {
+    out <- "(empty)"
+  }
 
-  out
+  cat(paste0("gutter:\n", out))
 }
-#' Test for `gutter` class
-#' @param x Object to Test
+
+#' @rdname gutter
 #' @export
 is_gutter <- function(x) inherits(x, "ttables_gutter")
+
+#' @rdname gutter
 #' @export
-is.na.ttables_gutter <- function(x) vec_detect_missing(x)
-NA_gutter_ <- gutter(NA_relative_, NA_relative_)
-#' Convert an object to `ttables_gutter` class
-#' @param x Object to convert
-#' @export
-as_gutter <- function(x) vec_cast(x, new_gutter())
+as_gutter <- function(x) {
+  if (is.null(x)) {
+    return(gutter())
+  }
+  if (!is.list(x)) {
+    rlang::abort("'x' must be a list")
+  }
+  if (!any(c("column", "row") %in% names(x))) {
+    rlang::abort("'x' must have 'column' and/or 'row' elements")
+  }
+  gutter(x$column, x$row)
+}
+
 #' @export
 vec_ptype_abbr.ttables_gutter <- function(x, ...) "gttr"
 #' @export

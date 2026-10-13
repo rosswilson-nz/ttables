@@ -45,6 +45,6 @@ x5 <- x4 %>%
     bold = TRUE,
     align = "centre",
     size = "12pt",
-    stroke = list(bottom = "1pt + red"),
+    # stroke = list(bottom = "1pt + red"),
     fill = "lime"
   )

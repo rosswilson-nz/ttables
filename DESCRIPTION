@@ -44,6 +44,7 @@ Collate:
     'ratio.R'
     'length.R'
     'relative.R'
+    'width.R'
     'gutter.R'
     'pack_rows.R'
     'set_table_options.R'
@@ -51,5 +52,4 @@ Collate:
     'ttab.R'
     'ttables-doc.R'
     'utils.R'
-    'width.R'
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0

@@ -113,7 +113,7 @@ check_stroke <- function(x, list_ok = TRUE) {
     ) {
       rlang::abort("Invalid item names in 'x'")
     }
-    list(dictionary(lapply(x, \(y) check_stroke(y, FALSE))))
+    list(as_dictionary(lapply(x, \(y) check_stroke(y, FALSE))))
   } else {
     x <- as_stroke(x)
     if (length(x) != 1) {

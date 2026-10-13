@@ -12,12 +12,26 @@ new_length <- function(abs = abs_length(), em = em_length()) {
   }
   new_rcrd(list(abs = abs, em = em), class = "ttables_length")
 }
+
+#' Length specification
+#'
+#' Create a new length specification
+#'
+#' Corresponds and translates to a Typst `length`.
+#'
+#' @param abs An absolute length vector
+#' @param em An em length vector
+#' @param x An object to test or convert.
+#'
+#' @export
 ttables_length <- function(abs = abs_length(), em = em_length()) {
   if (length(abs) == 0 && length(em)) {
-    abs <- abs_length(0, "pt")
+    abs <- abs_length(rep(0, length(em)), "pt")
+    abs[is.na(em)] <- NA_abs_length_
   }
   if (length(em) == 0 && length(abs)) {
-    em <- em_length(0)
+    em <- em_length(rep(0, length(abs)))
+    em[is.na(abs)] <- NA_em_length_
   }
   inputs <- vec_recycle_common(abs, em)
   abs <- inputs[[1]]
@@ -30,10 +44,12 @@ ttables_length <- function(abs = abs_length(), em = em_length()) {
   }
   new_length(abs, em)
 }
+
 #' @export
 format.ttables_length <- function(x, ...) {
   vapply(x, format_ttables_length, character(1))
 }
+
 format_ttables_length <- function(x) {
   if (is.na(x)) {
     return(NA_character_)
@@ -68,20 +84,30 @@ format_ttables_length <- function(x) {
   }
   return(paste0("-(", format(-abs), " + ", format(-em), ")"))
 }
+
+#' @rdname ttables_length
+#' @export
 is_length <- function(x) {
   inherits(x, c("ttables_length", "ttables_abs_length", "ttables_em_length"))
 }
+
+#' @rdname ttables_length
 #' @export
 is.na.ttables_length <- function(x) vec_detect_missing(x)
-NA_length_ <- ttables_length(NA_abs_length_, NA_em_length_)
-#' Convert an object to `ttables_length` class
-#' @param x Object to convert
+
+#' @rdname ttables_length
 #' @export
-as_length <- function(x) vec_cast(x, new_length())
+NA_length_ <- ttables_length(NA_abs_length_, NA_em_length_)
+
+#' @rdname ttables_length
+#' @export
+as_length <- function(x) vec_cast(x, ttables_length())
+
 #' @export
 vec_ptype_abbr.ttables_length <- function(x, ...) "len"
 #' @export
 vec_ptype_full.ttables_length <- function(x, ...) "length"
+
 #' @export
 vec_ptype2.ttables_length.ttables_length <- function(x, y, ...) new_length()
 #' @export
@@ -94,8 +120,12 @@ vec_cast.character.ttables_length <- function(x, to, ...) format(x)
 vec_cast.ttables_length.character <- function(x, to, ...) {
   abs <- extract_abs_length(x)
   em <- extract_em_length(x)
+  if (any(is.na(abs) & is.na(em) & !is.na(x))) {
+    rlang::abort("Invalid length")
+  }
   ttables_length(abs, em)
 }
+
 extract_abs_length <- function(x) {
   pattern <- paste0("-?[[:blank:]]*\\d*(\\.\\d+)?(pt|mm|cm|in)")
   out <- rep(NA_character_, length(x))
@@ -109,6 +139,7 @@ extract_abs_length <- function(x) {
   out[idx] <- values
   as_abs_length(out)
 }
+
 extract_em_length <- function(x) {
   pattern <- paste0("-?[[:blank:]]*\\d*(\\.\\d+)?em")
   out <- rep(NA_character_, length(x))
@@ -122,6 +153,7 @@ extract_em_length <- function(x) {
   out[idx] <- values
   as_em_length(out)
 }
+
 #' @export
 vec_cast.ttables_length.ttables_abs_length <- function(x, to, ...) {
   ttables_length(abs = x)
@@ -134,6 +166,7 @@ vec_cast.ttables_length.ttables_em_length <- function(x, to, ...) {
 vec_proxy_compare.ttables_length <- function(x, ...) {
   rlang::abort("Comparison of `ttables_length` objects is not implemented.")
 }
+
 #' @export
 #' @method vec_arith ttables_length
 vec_arith.ttables_length <- function(op, x, y, ...) {
@@ -147,7 +180,8 @@ vec_arith.ttables_length.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_length ttables_length
 vec_arith.ttables_length.ttables_length <- function(op, x, y, ...) {
-  switch(op,
+  switch(
+    op,
     "+" = ,
     "-" = new_length(
       vec_arith(op, field(x, "abs"), field(y, "abs")),
@@ -159,7 +193,8 @@ vec_arith.ttables_length.ttables_length <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_length numeric
 vec_arith.ttables_length.numeric <- function(op, x, y, ...) {
-  switch(op,
+  switch(
+    op,
     "/" = ,
     "*" = new_length(
       vec_arith(op, field(x, "abs"), y),
@@ -171,7 +206,8 @@ vec_arith.ttables_length.numeric <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.numeric ttables_length
 vec_arith.numeric.ttables_length <- function(op, x, y, ...) {
-  switch(op,
+  switch(
+    op,
     "*" = new_length(
       vec_arith(op, x, field(y, "abs")),
       vec_arith(op, x, field(y, "em"))
@@ -182,9 +218,5 @@ vec_arith.numeric.ttables_length <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.ttables_length MISSING
 vec_arith.ttables_length.MISSING <- function(op, x, y, ...) {
-  switch(op,
-    `-` = x * -1,
-    `+` = x,
-    stop_incompatible_op(op, x, y)
-  )
+  switch(op, `-` = x * -1, `+` = x, stop_incompatible_op(op, x, y))
 }
