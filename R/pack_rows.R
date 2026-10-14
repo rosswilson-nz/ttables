@@ -59,7 +59,8 @@ pack_rows <- function(
     new_row <- list()
     new_row[firstvar] <- label
     new_row["_insert_before"] <- start$rows
-    new_row <- vctrs::new_data_frame(new_row)
+    new_row[setdiff(names(x$`_added_rows`), names(new_row))] <- NA
+    new_row <- vctrs::new_data_frame(new_row)[names(x$`_added_rows`)]
     x$`_added_rows` <- rbind(x$`_added_rows`, new_row)
     x <- colspan(
       x,
